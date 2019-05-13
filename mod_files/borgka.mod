@@ -7,7 +7,6 @@ UNITS {
 
 PARAMETER {
     v			(mV)
-    ek			(mV)
     celsius		(degC)
     gkabar=.01	(mho/cm2)
     vhalfn=-33.6	(mV)
@@ -35,13 +34,12 @@ STATE {
 }
 
 INITIAL {
-    rates(v)
+    rates(v,celsius)
     n=ninf
     l=linf
 }
 
 ASSIGNED {
-    ik (mA/cm2)
     ninf
     linf
     taul
@@ -56,36 +54,36 @@ BREAKPOINT {
 }
 
 
-FUNCTION alpn(v(mV)) {
+FUNCTION alpn(v, celsius) {
     alpn = exp(1.e-3*zetan*(v-vhalfn)*9.648e4/(8.315*(273.16+celsius)))
 }
 
-FUNCTION betn(v(mV)) {
+FUNCTION betn(v, celsius) {
     betn = exp(1.e-3*zetan*gmn*(v-vhalfn)*9.648e4/(8.315*(273.16+celsius)))
 }
 
-FUNCTION alpl(v(mV)) {
+FUNCTION alpl(v, celsius) {
     alpl = exp(1.e-3*zetal*(v-vhalfl)*9.648e4/(8.315*(273.16+celsius)))
 }
 
-FUNCTION betl(v(mV)) {
+FUNCTION betl(v, celsius) {
     betl = exp(1.e-3*zetal*gml*(v-vhalfl)*9.648e4/(8.315*(273.16+celsius)))
 }
 
 DERIVATIVE states { 
-    rates(v)
+    rates(v,celsius)
     n' = (ninf - n)/taun
     l' = (linf - l)/taul
 }
 
-PROCEDURE rates(v (mV)) { :callable from hoc as rates_borgka()
+PROCEDURE rates(v, celsius) { :callable from hoc as rates_borgka()
     LOCAL a,q10
     q10=3^((celsius-30)/10)
-    a = alpn(v)
+    a = alpn(v,celsius)
     ninf = 1/(1 + a)
-    taun = betn(v)/(q10*a0n*(1+a))
-    a = alpl(v)
+    taun = betn(v,celsius)/(q10*a0n*(1+a))
+    a = alpl(v,celsius)
     linf = 1/(1+ a)
-    taul = betl(v)/(q10*a0l*(1 + a))
+    taul = betl(v,celsius)/(q10*a0l*(1 + a))
 }
 

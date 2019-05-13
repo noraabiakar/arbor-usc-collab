@@ -32,6 +32,7 @@ frequency = 5 # units: Hz
 
 vecstims = [h.VecStim() for ii in range(num_input)]
 evecs = [h.Vector() for ii in range(num_input)]
+vec = []
 
 for ii in range(num_input):
     intervals = []
@@ -50,8 +51,12 @@ for ii in range(num_input):
             spikes = np.cumsum(intervals)[:-1]
             for spike in spikes:
                 evecs[ii].append(spike)
+                vec.append(spike)
             
             vecstims[ii].play(evecs[ii])
+
+for v in vec:
+    print(v)
 
 #####################
 # Connecting inputs #
