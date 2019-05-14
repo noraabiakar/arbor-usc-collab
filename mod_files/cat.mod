@@ -5,15 +5,13 @@ TITLE T-calcium channel From Migliore CA3
 UNITS {
     (mA) = (milliamp)
     (mV) = (millivolt)
-    KTOMV = .0853 (mV/degC)
+    : KTOMV = .0853 (mV/degC)
 }
 
 PARAMETER {
     v (mV)
     celsius = 6.3	(degC)
     gcatbar=.003 (mho/cm2)
-    cai (mM)
-    cao (mM)
 }
 
 
@@ -22,7 +20,7 @@ NEURON {
     SUFFIX cat
     USEION tca READ etca WRITE itca VALENCE 2
     USEION ca READ cai, cao VALENCE 2
-    RANGE gcatbar,cai, itca, etca
+    RANGE gcatbar
 }
 
 STATE {
@@ -31,79 +29,74 @@ STATE {
 }
 
 ASSIGNED {
-    itca (mA/cm2)
     gcat (mho/cm2)
-    etca (mV)
 }
 
 INITIAL {
-    m = minf(v)
-    h = hinf(v)
+    LOCAL a_m, b_m, a_h, b_h
+    a_m = alpha_m(v)
+    b_m = beta_m(v)
+    a_h = alpha_h(v)
+    b_h = beta_h(v)
+
+    m = trap(a_m, b_m)
+    h = trap(a_h, b_h)
 }
 
 BREAKPOINT {
     SOLVE states METHOD cnexp
+    LOCAL nu, f, ghk
+
+    f = KTF(celsius)/2
+    nu = v/f
+    ghk=-f*(1. - (cai/cao)*exp(nu))*exprelr(nu)
+
     gcat = gcatbar*m*m*h
-    itca = gcat*ghk(v,cai,cao)
+    itca = gcat*ghk
 
 }
 
 DERIVATIVE states {	: exact when v held constant
-    m' = (minf(v) - m)/m_tau(v)
-    h' = (hinf(v) - h)/h_tau(v)
+    LOCAL a_m, b_m, a_h, b_h, minf, mtau, hinf, htau
+
+    a_m = alpha_m(v)
+    b_m = beta_m(v)
+    a_h = alpha_h(v)
+    b_h = beta_h(v)
+
+    minf = trap(a_m, b_m)
+    mtau = trap2(a_m, b_m)
+    hinf = trap(a_h, b_h)
+    htau = trap2(a_h, b_h)
+
+    m' = (minf - m)/mtau
+    h' = (hinf - h)/htau
 }
 
-
-FUNCTION ghk(v(mV), ci(mM), co(mM)) (mV) {
-    LOCAL nu,f
-
-    f = KTF(celsius)/2
-    nu = v/f
-    ghk=-f*(1. - (ci/co)*exp(nu))*efun(nu)
-}
-
-FUNCTION KTF(celsius (DegC)) (mV) {
+FUNCTION KTF(celsius) {
     KTF = ((25./293.15)*(celsius + 273.15))
 }
 
-
-FUNCTION efun(z) {
-    if (fabs(z) < 1e-4) {
-        efun = 1 - z/2
-    }else{
-        efun = z/(exp(z) - 1)
-    }
+FUNCTION alpha_m(v) {
+    alpha_m = 0.2*(-1.0*v+19.26)/(exp((-1.0*v+19.26)/10.0)-1.0)
 }
 
-FUNCTION hinf(v(mV)) {
-    LOCAL a,b
-    TABLE FROM -150 TO 150 WITH 200
-    a = 1.e-6*exp(-v/16.26)
-    b = 1/(exp((-v+29.79)/10)+1)
-    hinf = a/(a+b)
+FUNCTION beta_m(v) {
+    beta_m = 0.009*exp(-v/22.03)
 }
 
-FUNCTION minf(v(mV)) {
-    LOCAL a,b
-    TABLE FROM -150 TO 150 WITH 200
-        
-    a = 0.2*(-1.0*v+19.26)/(exp((-1.0*v+19.26)/10.0)-1.0)
-    b = 0.009*exp(-v/22.03)
-    minf = a/(a+b)
+FUNCTION alpha_h(v) {
+    alpha_h = 1.e-6*exp(-v/16.26)
 }
 
-FUNCTION m_tau(v(mV)) (ms) {
-    LOCAL a,b
-    TABLE FROM -150 TO 150 WITH 200
-    a = 0.2*(-1.0*v+19.26)/(exp((-1.0*v+19.26)/10.0)-1.0)
-    b = 0.009*exp(-v/22.03)
-    m_tau = 1/(a+b)
+FUNCTION beta_h(v) {
+    beta_h = 1/(exp((-v+29.79)/10)+1)
 }
 
-FUNCTION h_tau(v(mV)) (ms) {
-    LOCAL a,b
-    TABLE FROM -150 TO 150 WITH 200
-    a = 1.e-6*exp(-v/16.26)
-    b = 1/(exp((-v+29.79)/10.)+1.)
-    h_tau = 1/(a+b)
+FUNCTION trap(a, b) {
+    trap = a/(a+b)
+}
+
+FUNCTION trap2(a, b) {
+    trap2 = 1/(a+b)
 }
