@@ -7,7 +7,7 @@ UNITS {
     (mV) = (millivolt)
     (molar) = (1/liter)
     (mM) = (millimolar)
-    KTOMV = .0853 (mV/degC)
+    :KTOMV = .0853 (mV/degC)
 }
 
 PARAMETER {
@@ -15,8 +15,6 @@ PARAMETER {
     celsius 	(degC)
     glcabar		 (mho/cm2)
     ki=.001 (mM)
-    cai (mM)
-    cao (mM)
     tfa=1
 }
 
@@ -26,8 +24,7 @@ NEURON {
     SUFFIX lca
     USEION lca READ elca WRITE ilca VALENCE 2
     USEION ca READ cai, cao VALENCE 2
-    RANGE glcabar, cai, ilca, elca
-    RANGE minf,matu
+    RANGE glcabar, minf, matu
 }
 
 STATE {
@@ -35,12 +32,9 @@ STATE {
 }
 
 ASSIGNED {
-    ilca (mA/cm2)
     glca (mho/cm2)
     minf
     matu   (ms)
-    elca (mV)
-
 }
 
 INITIAL {
@@ -50,44 +44,29 @@ INITIAL {
 
 BREAKPOINT {
     SOLVE state METHOD cnexp
+    LOCAL f, nu, ghk
     glca = glcabar*m*m*h2(cai)
-    ilca = glca*ghk(v,cai,cao)
-
-}
-
-FUNCTION h2(cai(mM)) {
-    h2 = ki/(ki+cai)
-}
-
-
-FUNCTION ghk(v(mV), ci(mM), co(mM)) (mV) {
-    LOCAL nu,f
 
     f = KTF(celsius)/2
     nu = v/f
-    ghk=-f*(1. - (ci/co)*exp(nu))*efun(nu)
+    ghk=-f*(1. - (cai/cao)*exp(nu))*exprelr(nu)
+    ilca = glca*ghk
+
 }
 
-FUNCTION KTF(celsius (DegC)) (mV) {
+FUNCTION h2(cai) {
+    h2 = ki/(ki+cai)
+}
+
+FUNCTION KTF(celsius) {
     KTF = ((25./293.15)*(celsius + 273.15))
 }
 
-
-FUNCTION efun(z) {
-    if (fabs(z) < 1e-4) {
-        efun = 1 - z/2
-    }else{
-        efun = z/(exp(z) - 1)
-    }
-}
-
-FUNCTION alp(v(mV)) (1/ms) {
-    TABLE FROM -150 TO 150 WITH 200
+FUNCTION alp(v) {
     alp = 15.69*(-1.0*v+81.5)/(exp((-1.0*v+81.5)/10.0)-1.0)
 }
 
-FUNCTION bet(v(mV)) (1/ms) {
-    TABLE FROM -150 TO 150 WITH 200
+FUNCTION bet(v) {
     bet = 0.29*exp(-v/10.86)
 }
 
@@ -96,7 +75,7 @@ DERIVATIVE state {
     m' = (minf - m)/matu
 }
 
-PROCEDURE rate(v (mV)) {
+PROCEDURE rate(v) {
     LOCAL a
     a = alp(v)
     matu = 1/(tfa*(a + bet(v)))
