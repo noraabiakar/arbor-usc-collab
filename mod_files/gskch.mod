@@ -1,10 +1,6 @@
 TITLE gskch.mod  calcium-activated potassium channel (non-voltage-dependent)
 
-COMMENT
-
-gsk granule
-
-ENDCOMMENT
+: gsk granule
 
 UNITS {
     (molar) = (1/liter)
@@ -28,17 +24,16 @@ PARAMETER {
     v		(mV)
     dt		(ms)
     gskbar  (mho/cm2)
-    esk	(mV)
-    cai (mM)
-    ncai (mM)
-    lcai (mM)
-    tcai (mM)
 }
 
 STATE { q }
 
 ASSIGNED {
-    isk (mA/cm2) gsk (mho/cm2) qinf qtau (ms) qexp
+    gsk (mho/cm2)
+    qinf
+    qtau (ms)
+    qexp
+    cai (mM)
 }
 
 
@@ -48,24 +43,21 @@ BREAKPOINT {          :Computes i=g*q^2*(v-esk)
     isk = gsk * (v-esk)
 }
 
-UNITSOFF
-
 INITIAL {
     cai = ncai + lcai + tcai
-    rate(cai)
+    rate(cai, celsius)
     q=qinf
 }
 
 
 DERIVATIVE state {  :Computes state variable q at current v and dt.
     cai = ncai + lcai + tcai
-    rate(cai)
+    rate(cai, celsius)
     q' = (qinf - q)/qtau
 }
 
-LOCAL q10
-PROCEDURE rate(cai) {  :Computes rate and other constants at current v.
-    LOCAL alpha, beta, tinc
+PROCEDURE rate(cai, celsius) {  :Computes rate and other constants at current v.
+    LOCAL alpha, beta, tinc, q10
     q10 = 3^((celsius - 6.3)/10)
     alpha = 1.25e1 * cai * cai
     beta = 0.00025
@@ -74,5 +66,3 @@ PROCEDURE rate(cai) {  :Computes rate and other constants at current v.
     tinc = -dt*q10
     qexp = 1 - exp(tinc/qtau)*q10
 }
-
-UNITSON
