@@ -64,7 +64,7 @@ for ii in range(num_input):
     neuron_DG.synGroups['AMPA']['soma'][0].tau2 = 16.423438
     neuron_DG.synGroups['AMPA']['soma'][0].e = 0
     nc.weight[0] = w_MEA_av
-    nc.delay = 0
+    nc.delay = 0.0025
     net_cons.append(nc)
 
 ################################

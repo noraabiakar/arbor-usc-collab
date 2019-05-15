@@ -139,35 +139,37 @@ def getReducedBiophysics(cell):
     cell.soma.L = 20
     cell.soma.diam = 15
 
-    cell.soma.insert('ccanl')
-    cell.soma.insert('borgka')
-    cell.soma.insert('nca')
-    cell.soma.insert('lca')
-    cell.soma.insert('gskch')
-    cell.soma.insert('cagk')
+    cell.soma.insert('hh')
 
-    cell.soma.catau_ccanl = 10
-    cell.soma.caiinf_ccanl = 5.0e-6
-    cell.soma.gkabar_borgka = 0.00015
-    cell.soma.gncabar_nca = 0.0008
-    cell.soma.glcabar_lca = 0.005
-    cell.soma.gskbar_gskch = 0.000002
-    cell.soma.gkbar_cagk = 0.0002
-
-    cell.soma.insert('ichan2')
-    cell.soma.cm = 1.4
-    cell.soma.gnatbar_ichan2 = 0.12
-    cell.soma.gkfbar_ichan2 = 0.013
-    cell.soma.gl_ichan2 = 0.00018
-
+    # cell.soma.insert('ccanl')
+    # cell.soma.insert('borgka')
+    # cell.soma.insert('nca')
+    # cell.soma.insert('lca')
+    # cell.soma.insert('gskch')
+    # cell.soma.insert('cagk')
+    #
+    # cell.soma.catau_ccanl = 10
+    # cell.soma.caiinf_ccanl = 5.0e-6
+    # cell.soma.gkabar_borgka = 0.00015
+    # cell.soma.gncabar_nca = 0.0008
+    # cell.soma.glcabar_lca = 0.005
+    # cell.soma.gskbar_gskch = 0.000002
+    # cell.soma.gkbar_cagk = 0.0002
+    #
+    # cell.soma.insert('ichan2')
+    # cell.soma.cm = 1.4
+    # cell.soma.gnatbar_ichan2 = 0.12
+    # cell.soma.gkfbar_ichan2 = 0.013
+    # cell.soma.gl_ichan2 = 0.00018
+    #
     cell.soma.Ra = 100
-    cell.soma.enat = 55
-    cell.soma.ekf = -90
-    cell.soma.ek = -90
-    cell.soma.elca = 130
-    cell.soma.esk = -90
-    cell.soma.el_ichan2 = -65
-    cell.soma.cao = 2
+    # cell.soma.enat = 55
+    # cell.soma.ekf = -90
+    # cell.soma.ek = -90
+    # cell.soma.elca = 130
+    # cell.soma.esk = -90
+    # cell.soma.el_ichan2 = -65
+    # cell.soma.cao = 2
 
 # Function to create a synapse at the chosen segment in a section
 def createSyn(synvars,sec_choice,seg_choice):

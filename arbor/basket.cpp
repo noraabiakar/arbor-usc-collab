@@ -80,7 +80,7 @@ public:
     // Cell1 has one incoming connection, from cell0 (spike_cource).
     std::vector<arb::cell_connection> connections_on(cell_gid_type gid) const override {
         if (gid == 1) {
-            return {arb::cell_connection({0, 0}, {1, 0}, event_weight_, 0.1)};
+            return {arb::cell_connection({0, 0}, {1, 0}, event_weight_, 0.0025)};
         }
         else return {};
     }
