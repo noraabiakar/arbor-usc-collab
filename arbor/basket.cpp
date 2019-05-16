@@ -48,22 +48,17 @@ arb::cable_cell basket_cell(arb::cell_gid_type gid);
 
 class basket_recipe: public arb::recipe {
 public:
-    basket_recipe(const std::vector<double>& spikes): num_cells_(2), spikes_(spikes) {}
+    basket_recipe(const std::vector<double>& spikes): num_cells_(1), spikes_(spikes) {}
 
     cell_size_type num_cells() const override {
         return num_cells_;
     }
 
     arb::util::unique_any get_cell_description(cell_gid_type gid) const override {
-        if (gid == 0) {
-            return arb::util::unique_any(arb::spike_source_cell{arb::explicit_schedule(spikes_)});
-        }
         return basket_cell(gid);
     }
 
     cell_kind get_cell_kind(cell_gid_type gid) const override {
-        if (gid == 0)
-            return cell_kind::spike_source;
         return cell_kind::cable;
     }
 
@@ -77,17 +72,19 @@ public:
         return 1;
     }
 
-    // Cell1 has one incoming connection, from cell0 (spike_cource).
-    std::vector<arb::cell_connection> connections_on(cell_gid_type gid) const override {
-        if (gid == 1) {
-            return {arb::cell_connection({0, 0}, {1, 0}, event_weight_, 0.0025)};
+    std::vector<arb::event_generator> event_generators(cell_gid_type gid) const override {
+        std::vector<arb::event_generator> gens;
+        arb::pse_vector svec;
+        for (auto s: spikes_) {
+            svec.push_back({{0, 0}, s, event_weight_});
         }
-        else return {};
+        gens.push_back(arb::explicit_generator(svec));
+        return gens;
     }
 
 
     // There is one probe (for measuring voltage at the soma) on the cell.
-    cell_size_type num_probes(cell_gid_type gid)  const override {
+    cell_size_type num_probes(cell_gid_type gid) const override {
         return 1;
     }
 
@@ -161,8 +158,8 @@ int main(int argc, char** argv) {
 
         // Set up the probe that will measure voltage in the cell.
 
-        // The id of the only probe on the cell: the cell_member type points to (cell 1, probe 0)
-        auto probe_id = cell_member_type{1, 0};
+        // The id of the only probe on the cell: the cell_member type points to (cell 0, probe 0)
+        auto probe_id = cell_member_type{0, 0};
         // The schedule for sampling is 10 samples every 1 ms.
         auto sched = arb::regular_schedule(0.1);
         // This is where the voltage samples will be stored as (time, value) pairs
