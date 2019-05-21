@@ -32,6 +32,7 @@ frequency = 5 # units: Hz
 
 vecstims = [h.VecStim() for ii in range(num_input)]
 evecs = [h.Vector() for ii in range(num_input)]
+vec = []
 
 for ii in range(num_input):
     intervals = []
@@ -50,8 +51,12 @@ for ii in range(num_input):
             spikes = np.cumsum(intervals)[:-1]
             for spike in spikes:
                 evecs[ii].append(spike)
+                vec.append(spike)
             
             vecstims[ii].play(evecs[ii])
+
+for v in vec:
+    print(v)
 
 #####################
 # Connecting inputs #
@@ -60,10 +65,10 @@ w_MEA_av = 1.17e-4
 net_cons = []
 for ii in range(num_input):
     choice = neuron_DG.ranGen.randint(0,len(neuron_DG.synGroups['AMPA']['middleThird'])-1)
-    nc = h.NetCon(vecstims[ii], neuron_DG.synGroups['AMPA']['middleThird'][choice])
-    neuron_DG.synGroups['AMPA']['middleThird'][choice].tau1 = 0.709067133592
-    neuron_DG.synGroups['AMPA']['middleThird'][choice].tau2 = 4.79049393295
-    neuron_DG.synGroups['AMPA']['middleThird'][choice].e = 0
+    nc = h.NetCon(vecstims[ii], neuron_DG.synGroups['AMPA']['soma'][0])
+    neuron_DG.synGroups['AMPA']['soma'][0].tau1 = 0.709067133592
+    neuron_DG.synGroups['AMPA']['soma'][0].tau2 = 4.79049393295
+    neuron_DG.synGroups['AMPA']['soma'][0].e = 0
     nc.weight[0] = w_MEA_av
     nc.delay = 0
     net_cons.append(nc)

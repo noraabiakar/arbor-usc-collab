@@ -251,8 +251,8 @@ arb::cable_cell basket_cell(arb::cell_gid_type gid) {
     cell.add_detector({0, 0}, 10);
 
     arb::mechanism_desc exp2syn("exp2syn");
-    exp2syn["tau1"] = 0.5;
-    exp2syn["tau2"] = 0.6;
+    exp2syn["tau1"] = 0.1;
+    exp2syn["tau2"] = 16.423438;
     exp2syn["e"] = 0;
 
     cell.add_synapse({0, 0.5}, exp2syn);

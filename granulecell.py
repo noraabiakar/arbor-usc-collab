@@ -121,124 +121,127 @@ def makeSegLocDict(cell):
 
 # Function to specify the biophysics of the cell
 def getBiophysics(cell):
-    cell.c.soma[0].L *= 2
-
-    cell.RaMult = 1.0
-    cell.CmMult = 9.8
-    cell.a1 = 7.0				#gnatbar_ichan2
-    cell.b1 = 2.25				#gkfbar_ichan2
-    cell.c1 = 1.0				#gksbar_ichan2
-    cell.d1 = 9.0				#gkabar_borgka
-    cell.e1 = 1/1.36			#gncabar_nca
-    cell.f1 = 0.5				#glcabar_lca
-    cell.g1 = 2.0				#gcatbar_cat
-    cell.h1 = 1.0				#gskbar_gskch
-    cell.i1 = 1/5.0			#gkbar_cagk
-    cell.j1 = 7.2538			#gl_ichan2
-    cell.k1 = 1.0				#catau_ccanl
-    cell.l1 = 1.0				#caiinf_ccanl
+    # cell.c.soma[0].L *= 2
+    #
+    # cell.RaMult = 1.0
+    # cell.CmMult = 9.8
+    # cell.a1 = 7.0				#gnatbar_ichan2
+    # cell.b1 = 2.25				#gkfbar_ichan2
+    # cell.c1 = 1.0				#gksbar_ichan2
+    # cell.d1 = 9.0				#gkabar_borgka
+    # cell.e1 = 1/1.36			#gncabar_nca
+    # cell.f1 = 0.5				#glcabar_lca
+    # cell.g1 = 2.0				#gcatbar_cat
+    # cell.h1 = 1.0				#gskbar_gskch
+    # cell.i1 = 1/5.0			#gkbar_cagk
+    # cell.j1 = 7.2538			#gl_ichan2
+    # cell.k1 = 1.0				#catau_ccanl
+    # cell.l1 = 1.0				#caiinf_ccanl
 
     # Now, insert the proper biophysics for each section.
     for sec in cell.c.all:
-        sec.insert('ccanl')
-        sec.catau_ccanl=10*cell.k1
-        sec.caiinf_ccanl=5.0e-6*cell.l1
-        sec.Ra=410*cell.RaMult
-
-    for sec in cell.c.somatic:
-        sec.insert('ichan2')
-        sec.gnatbar_ichan2 = 0.12*cell.a1
-        sec.gkfbar_ichan2=0.016*cell.b1
-        sec.gksbar_ichan2=0.006*cell.c1
-        sec.insert('borgka')
-        sec.gkabar_borgka=0.001*cell.d1
-        sec.insert('nca')
-        sec.gncabar_nca=0.001*cell.e1
-        sec.insert('lca')
-        sec.glcabar_lca=0.005*cell.f1
-        sec.insert('cat')
-        sec.gcatbar_cat=0.000037*cell.g1
-        sec.insert('gskch')
-        sec.gskbar_gskch=0.001*cell.h1
-        sec.insert('cagk')
-        sec.gkbar_cagk=0.0006*cell.i1
-        sec.gl_ichan2=0.00004*cell.j1
-        sec.cm=1.0*cell.CmMult
-
-    for sec in cell.c.dend:
-        sec.insert('ichan2')
-        sec.insert('nca')
-        sec.insert('lca')
-        sec.insert('cat')
-        sec.insert('gskch')
-        sec.insert('cagk')
-
-    for sec in cell.granuleCellLayer:
-        if len(cell.granuleCellLayer[sec]) > 0:
-            for norm_dist in cell.granuleCellLayer[sec]:
-                sec(norm_dist).gnatbar_ichan2 = 0.018*cell.a1
-                sec(norm_dist).gkfbar_ichan2=0.004
-                sec(norm_dist).gksbar_ichan2=0.006
-                sec(norm_dist).gncabar_nca=0.003*cell.e1
-                sec(norm_dist).glcabar_lca=0.0075
-                sec(norm_dist).gcatbar_cat=0.000075
-                sec(norm_dist).gskbar_gskch=0.0004
-                sec(norm_dist).gkbar_cagk=0.0006*cell.i1
-                sec(norm_dist).gl_ichan2=0.00004*cell.j1
-                sec(norm_dist).cm=1.0*cell.CmMult
-
-    for sec in cell.innerThird:
-        if len(cell.innerThird[sec]) > 0:
-            for norm_dist in cell.innerThird[sec]:
-                sec(norm_dist).gnatbar_ichan2 = 0.013*cell.a1
-                sec(norm_dist).gkfbar_ichan2=0.004
-                sec(norm_dist).gksbar_ichan2=0.006
-                sec(norm_dist).gncabar_nca=0.001*cell.e1
-                sec(norm_dist).glcabar_lca=0.0075
-                sec(norm_dist).gcatbar_cat=0.00025
-                sec(norm_dist).gskbar_gskch=0.0002
-                sec(norm_dist).gkbar_cagk=0.001*cell.i1
-                sec(norm_dist).gl_ichan2=0.000063*cell.j1
-                sec(norm_dist).cm=1.6*cell.CmMult
-
-    for sec in cell.middleThird:
-        if len(cell.middleThird[sec]) > 0:
-            for norm_dist in cell.middleThird[sec]:
-                sec(norm_dist).gnatbar_ichan2 = 0.008*cell.a1
-                sec(norm_dist).gkfbar_ichan2=0.001
-                sec(norm_dist).gksbar_ichan2=0.006
-                sec(norm_dist).gncabar_nca=0.001*cell.e1
-                sec(norm_dist).glcabar_lca=0.0005
-                sec(norm_dist).gcatbar_cat=0.0005
-                sec(norm_dist).gskbar_gskch=0.0
-                sec(norm_dist).gkbar_cagk=0.0024*cell.i1
-                sec(norm_dist).gl_ichan2=0.000063*cell.j1
-                sec(norm_dist).cm=1.6*cell.CmMult
-
-    for sec in cell.outerThird:
-        if len(cell.outerThird[sec]) > 0:
-            for norm_dist in cell.outerThird[sec]:
-                sec(norm_dist).gnatbar_ichan2 = 0.0*cell.a1
-                sec(norm_dist).gkfbar_ichan2=0.001
-                sec(norm_dist).gksbar_ichan2=0.008
-                sec(norm_dist).gncabar_nca=0.001*cell.e1
-                sec(norm_dist).glcabar_lca=0.0
-                sec(norm_dist).gcatbar_cat=0.001
-                sec(norm_dist).gskbar_gskch=0.0
-                sec(norm_dist).gkbar_cagk=0.0024*cell.i1
-                sec(norm_dist).gl_ichan2=0.000063*cell.j1
-                sec(norm_dist).cm=1.6*cell.CmMult
-
-    for sec in cell.c.all:
-        sec.enat = 45
-        sec.ekf = -90
-        sec.eks = -90
-        sec.ek = -90
-        sec.elca = 130
-        sec.etca = 130
-        sec.esk = -90
-        sec.el_ichan2 = -73
-        sec.cao = 2
+        sec.insert('hh')
+        print(sec.ek)
+        print(sec.ena)
+    #     sec.insert('ccanl')
+    #     sec.catau_ccanl=10*cell.k1
+    #     sec.caiinf_ccanl=5.0e-6*cell.l1
+    #     sec.Ra=410*cell.RaMult
+    #
+    # for sec in cell.c.somatic:
+    #     sec.insert('ichan2')
+    #     sec.gnatbar_ichan2 = 0.12*cell.a1
+    #     sec.gkfbar_ichan2=0.016*cell.b1
+    #     sec.gksbar_ichan2=0.006*cell.c1
+    #     sec.insert('borgka')
+    #     sec.gkabar_borgka=0.001*cell.d1
+    #     sec.insert('nca')
+    #     sec.gncabar_nca=0.001*cell.e1
+    #     sec.insert('lca')
+    #     sec.glcabar_lca=0.005*cell.f1
+    #     sec.insert('cat')
+    #     sec.gcatbar_cat=0.000037*cell.g1
+    #     sec.insert('gskch')
+    #     sec.gskbar_gskch=0.001*cell.h1
+    #     sec.insert('cagk')
+    #     sec.gkbar_cagk=0.0006*cell.i1
+    #     sec.gl_ichan2=0.00004*cell.j1
+    #     sec.cm=1.0*cell.CmMult
+    #
+    # for sec in cell.c.dend:
+    #     sec.insert('ichan2')
+    #     sec.insert('nca')
+    #     sec.insert('lca')
+    #     sec.insert('cat')
+    #     sec.insert('gskch')
+    #     sec.insert('cagk')
+    #
+    # for sec in cell.granuleCellLayer:
+    #     if len(cell.granuleCellLayer[sec]) > 0:
+    #         for norm_dist in cell.granuleCellLayer[sec]:
+    #             sec(norm_dist).gnatbar_ichan2 = 0.018*cell.a1
+    #             sec(norm_dist).gkfbar_ichan2=0.004
+    #             sec(norm_dist).gksbar_ichan2=0.006
+    #             sec(norm_dist).gncabar_nca=0.003*cell.e1
+    #             sec(norm_dist).glcabar_lca=0.0075
+    #             sec(norm_dist).gcatbar_cat=0.000075
+    #             sec(norm_dist).gskbar_gskch=0.0004
+    #             sec(norm_dist).gkbar_cagk=0.0006*cell.i1
+    #             sec(norm_dist).gl_ichan2=0.00004*cell.j1
+    #             sec(norm_dist).cm=1.0*cell.CmMult
+    #
+    # for sec in cell.innerThird:
+    #     if len(cell.innerThird[sec]) > 0:
+    #         for norm_dist in cell.innerThird[sec]:
+    #             sec(norm_dist).gnatbar_ichan2 = 0.013*cell.a1
+    #             sec(norm_dist).gkfbar_ichan2=0.004
+    #             sec(norm_dist).gksbar_ichan2=0.006
+    #             sec(norm_dist).gncabar_nca=0.001*cell.e1
+    #             sec(norm_dist).glcabar_lca=0.0075
+    #             sec(norm_dist).gcatbar_cat=0.00025
+    #             sec(norm_dist).gskbar_gskch=0.0002
+    #             sec(norm_dist).gkbar_cagk=0.001*cell.i1
+    #             sec(norm_dist).gl_ichan2=0.000063*cell.j1
+    #             sec(norm_dist).cm=1.6*cell.CmMult
+    #
+    # for sec in cell.middleThird:
+    #     if len(cell.middleThird[sec]) > 0:
+    #         for norm_dist in cell.middleThird[sec]:
+    #             sec(norm_dist).gnatbar_ichan2 = 0.008*cell.a1
+    #             sec(norm_dist).gkfbar_ichan2=0.001
+    #             sec(norm_dist).gksbar_ichan2=0.006
+    #             sec(norm_dist).gncabar_nca=0.001*cell.e1
+    #             sec(norm_dist).glcabar_lca=0.0005
+    #             sec(norm_dist).gcatbar_cat=0.0005
+    #             sec(norm_dist).gskbar_gskch=0.0
+    #             sec(norm_dist).gkbar_cagk=0.0024*cell.i1
+    #             sec(norm_dist).gl_ichan2=0.000063*cell.j1
+    #             sec(norm_dist).cm=1.6*cell.CmMult
+    #
+    # for sec in cell.outerThird:
+    #     if len(cell.outerThird[sec]) > 0:
+    #         for norm_dist in cell.outerThird[sec]:
+    #             sec(norm_dist).gnatbar_ichan2 = 0.0*cell.a1
+    #             sec(norm_dist).gkfbar_ichan2=0.001
+    #             sec(norm_dist).gksbar_ichan2=0.008
+    #             sec(norm_dist).gncabar_nca=0.001*cell.e1
+    #             sec(norm_dist).glcabar_lca=0.0
+    #             sec(norm_dist).gcatbar_cat=0.001
+    #             sec(norm_dist).gskbar_gskch=0.0
+    #             sec(norm_dist).gkbar_cagk=0.0024*cell.i1
+    #             sec(norm_dist).gl_ichan2=0.000063*cell.j1
+    #             sec(norm_dist).cm=1.6*cell.CmMult
+    #
+    # for sec in cell.c.all:
+    #     sec.enat = 45
+    #     sec.ekf = -90
+    #     sec.eks = -90
+    #     sec.ek = -90
+    #     sec.elca = 130
+    #     sec.etca = 130
+    #     sec.esk = -90
+    #     sec.el_ichan2 = -73
+    #     sec.cao = 2
 
 # Function to specify the biophysics of the reduced cell model
 def getReducedBiophysics(cell):

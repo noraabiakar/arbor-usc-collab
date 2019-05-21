@@ -112,7 +112,7 @@ private:
     cell_size_type num_cells_;
     std::vector<double> spikes_;
     granule_params params_;
-    float event_weight_ = 1.438995e-04;
+    float event_weight_ = 1.17e-4;
 };
 
 
@@ -437,8 +437,8 @@ arb::cable_cell granule_cell(arb::cell_gid_type gid, std::string filename) {
     cell.add_detector({0, 0}, 10);
 
     arb::mechanism_desc exp2syn("exp2syn");
-    exp2syn["tau1"] = 0.5;
-    exp2syn["tau2"] = 0.6;
+    exp2syn["tau1"] = 0.709067133592;
+    exp2syn["tau2"] = 4.79049393295;
     exp2syn["e"] = 0;
 
     for (unsigned i = 0; i < segment_layer_pos.size(); i++) {
@@ -449,6 +449,10 @@ arb::cable_cell granule_cell(arb::cell_gid_type gid, std::string filename) {
             }
         }
         std::cout << std::endl;
+    }
+
+    for (auto& segment: cell.segments()) {
+        segment->add_mechanism("hh");
     }
 
     return cell;
