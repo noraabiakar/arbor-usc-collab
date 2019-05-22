@@ -380,6 +380,7 @@ class Cell:
         reg[sec] = list(set(reg[sec]))
         reg[sec].sort()
 
+
     ##########################################################
     # Function that extracts the coordinates of the segments #
     ##########################################################

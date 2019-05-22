@@ -8,7 +8,6 @@
 #include <arbor/cable_cell.hpp>
 
 std::vector<double> read_spike_times();
-
 template <typename T>
 struct layers {
     std::unordered_map<std::string, std::vector<T>> map =
@@ -39,6 +38,7 @@ struct granule_params {
             9453.933657798472, 9544.328220467469, 9858.711284584584, 9955.045230553718,
             9956.054906300105
     };
+    double seg_res = 5;
 };
 
 granule_params read_params() {
@@ -97,7 +97,7 @@ std::vector<double> extent(const std::vector<double>& x,
     return ext;
 }
 
-std::vector<layers<double>> get_synapse_positions(std::string filename) {
+std::vector<layers<double>> get_synapse_positions(std::string filename, double res) {
      std::ifstream f(filename);
      if (!f) throw std::runtime_error("unable to open file");
 
@@ -120,6 +120,7 @@ std::vector<layers<double>> get_synapse_positions(std::string filename) {
      }
 
      std::vector<layers<double>> segment_layer_dist;
+     std::vector<unsigned> nseg;
 
      std::unordered_map<std::string, std::pair<double, double>> layer_extents =
              { {"soma_layer",    {0,0}},
@@ -130,9 +131,13 @@ std::vector<layers<double>> get_synapse_positions(std::string filename) {
              };
 
      for (auto& seg: cell.segments()) {
-         unsigned nseg = 1; //depends on segment length
          if (!seg->is_soma()) {
              std::vector<double> x_interp, y_interp, z_interp;
+             auto length = seg->as_cable()->length();
+             auto n = (unsigned)std::ceil(length/res);
+             nseg.push_back(n);
+             seg->as_cable()->set_compartments(n);
+
              auto locs = seg->as_cable()->locations();
              for (unsigned i = 0; i < locs.size()- 1; i++) {
                  auto x0 = locs[i].x;
@@ -141,9 +146,9 @@ std::vector<layers<double>> get_synapse_positions(std::string filename) {
                  auto x1 = locs[i + 1].x;
                  auto y1 = locs[i + 1].y;
                  auto z1 = locs[i + 1].z;
-                 auto x_t = linspace(x0, x1, nseg+2);
-                 auto y_t = linspace(y0, y1, nseg+2);
-                 auto z_t = linspace(z0, z1, nseg+2);
+                 auto x_t = linspace(x0, x1, n+2);
+                 auto y_t = linspace(y0, y1, n+2);
+                 auto z_t = linspace(z0, z1, n+2);
                  x_interp.insert(x_interp.end(), x_t.begin(), x_t.end()-1);
                  y_interp.insert(y_interp.end(), y_t.begin(), y_t.end()-1);
                  z_interp.insert(z_interp.end(), z_t.begin(), z_t.end()-1);
@@ -168,13 +173,13 @@ std::vector<layers<double>> get_synapse_positions(std::string filename) {
      }
 
      std::vector<layers<double>> segment_layer_pos;
-     for (auto s: segment_layer_dist) {
-         unsigned nseg = 1; // property of branch
-         auto branch_pos = linspace(0.5/nseg, 1-0.5/nseg, nseg);
+     for (unsigned i = 0; i < segment_layer_dist.size(); i++) {
+         unsigned n = nseg[i];
+         auto branch_pos = linspace(0.5/n, 1-0.5/n, n);
          std::vector<double> abs_diff;
 
          layers<double> l;
-         for (auto layer: s.map) {
+         for (auto layer: segment_layer_dist[i].map) {
              for (auto v : layer.second) {
                  abs_diff = branch_pos;
                  for (auto& a: abs_diff) {

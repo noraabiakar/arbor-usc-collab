@@ -157,7 +157,7 @@ int main(int argc, char** argv) {
 
         auto params = read_params();
 
-        auto syn_pos = get_synapse_positions(params.morph_file);
+        auto syn_pos = get_synapse_positions(params.morph_file, params.seg_res);
         auto syn_ids = get_synapse_ids(syn_pos);
 
         // Create an instance of our recipe.

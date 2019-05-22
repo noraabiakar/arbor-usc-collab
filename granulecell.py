@@ -67,7 +67,7 @@ def getNewAxis():
 
 # Function to return the nseg resolution
 def getNsegRes():
-    return 50
+    return 5
 
 # Function to return soma
 def getSoma(cell):
