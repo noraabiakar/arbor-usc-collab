@@ -44,22 +44,25 @@ using arb::time_type;
 using arb::cell_probe_address;
 
 // Writes voltage trace as a json file.
- void write_trace_json(const arb::trace_data<double>& trace);
+void write_trace_json(const arb::trace_data<double>& trace);
 
 // Generate a cell.
-arb::cable_cell granule_cell(arb::cell_gid_type gid, std::string filename);
+arb::cable_cell granule_cell(std::string filename, std::vector<layers<double>> segment_layer_pos);
 
 class granule_recipe: public arb::recipe {
 public:
-    granule_recipe(const std::vector<double>& spikes, granule_params gparams):
-        num_cells_(1), spikes_(spikes), params_(gparams) {}
+    granule_recipe(const granule_params& gparams,
+                   const std::vector<layers<double>>& syn_pos,
+                   const layers<unsigned>& syn_ids):
+        num_cells_(1), params_(gparams), syn_pos_(syn_pos), syn_ids_(syn_ids) {}
 
     cell_size_type num_cells() const override {
         return num_cells_;
     }
 
     arb::util::unique_any get_cell_description(cell_gid_type gid) const override {
-        return granule_cell(gid, params_.morph_file);
+        auto cell = granule_cell(params_.morph_file, syn_pos_);
+        return std::move(cell);
     }
 
     cell_kind get_cell_kind(cell_gid_type gid) const override {
@@ -79,8 +82,8 @@ public:
     std::vector<arb::event_generator> event_generators(cell_gid_type gid) const override {
         std::vector<arb::event_generator> gens;
         arb::pse_vector svec;
-        for (auto s: spikes_) {
-            svec.push_back({{0, 0}, s, event_weight_});
+        for (auto s: params_.spikes) {
+            svec.push_back({{0, 9}, s, event_weight_});
         }
         gens.push_back(arb::explicit_generator(svec));
         return gens;
@@ -110,8 +113,9 @@ public:
 
 private:
     cell_size_type num_cells_;
-    std::vector<double> spikes_;
     granule_params params_;
+    layers<unsigned> syn_ids_;
+    std::vector<layers<double>> syn_pos_;
     float event_weight_ = 1.17e-4;
 };
 
@@ -151,8 +155,13 @@ int main(int argc, char** argv) {
         arb::profile::meter_manager meters;
         meters.start(context);
 
+        auto params = read_params();
+
+        auto syn_pos = get_synapse_positions(params.morph_file);
+        auto syn_ids = get_synapse_ids(syn_pos);
+
         // Create an instance of our recipe.
-        granule_recipe recipe(read_spike_times(), read_params());
+        granule_recipe recipe(params, syn_pos, syn_ids);
 
         auto decomp = arb::partition_load_balance(recipe, context);
 
@@ -245,194 +254,15 @@ void write_trace_json(const arb::trace_data<double>& trace) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<double> linspace(double a, double b, unsigned num_pts) {
+arb::cable_cell granule_cell(
+        std::string filename,
+        std::vector<layers<double>> segment_layer_pos) {
 
-    std::vector<double> ret;
-    if (num_pts == 0) {
-        return ret;
-    }
-
-    ret.push_back(a);
-    if (num_pts == 1) {
-        return ret;
-    }
-
-    double inc = (b - a)/ (num_pts-1);
-    for (unsigned i = 1; i < num_pts; i++) {
-        ret.push_back(ret[i-1] + inc);
-    }
-    return ret;
-}
-
-std::vector<double> normalize(const std::vector<double>& x,
-                              const std::vector<double>& y,
-                              const std::vector<double>& z,
-                              const double length) {
-
-    std::vector<double> norm = {0};
-    double dist = 0;
-    for (unsigned i = 1; i < x.size(); i++) {
-        auto x_sq = std::pow((x[i]-x[i-1]),2);
-        auto y_sq = std::pow((y[i]-y[i-1]),2);
-        auto z_sq = std::pow((z[i]-z[i-1]),2);
-        dist += std::sqrt(x_sq + y_sq + z_sq);
-        norm.push_back(dist/length);
-    }
-    return norm;
-}
-
-std::vector<double> extent(const std::vector<double>& x,
-                           const std::vector<double>& y,
-                           const std::vector<double>& z,
-                           arb::point<double> center) {
-
-    std::vector<double> ext;
-    for (unsigned i = 0; i < x.size(); i++) {
-        arb::point<double> loc = {x[i], y[i], z[i]};
-        auto diff = std::abs((loc-center).z);
-        ext.push_back(diff);
-    }
-    return ext;
-}
-
-struct layers {
-    std::unordered_map<std::string, std::vector<double>> map =
-            { {"soma_layer",    {}},
-              {"granule_layer", {}},
-              {"inner_layer",   {}},
-              {"middle_layer",  {}},
-              {"outer_layer",  {}}
-            };
-};
-
-arb::cable_cell granule_cell(arb::cell_gid_type gid, std::string filename) {
     std::ifstream f(filename);
     if (!f) throw std::runtime_error("unable to open file");
 
     auto morph = arb::swc_as_morphology(arb::parse_swc_file(f));
     arb::cable_cell cell = arb::make_cable_cell(morph);
-
-    auto soma_loc = cell.soma()->center();
-    double max_extent = 0.0;
-    for (auto& seg: cell.segments()) {
-        if (!seg->is_soma()) {
-            auto locs = seg->as_cable()->locations();
-            for (auto l :locs) {
-                auto diff = l - soma_loc;
-                auto dist = diff.z;
-                if (dist > max_extent) {
-                    max_extent = dist;
-                }
-            }
-        }
-    }
-
-    std::vector<layers> segment_layer_dist;
-
-    std::unordered_map<std::string, std::pair<double, double>> layer_extents =
-            { {"soma_layer",    {0,0}},
-              {"granule_layer", {0,0.1*max_extent}},
-              {"inner_layer",   {0.1*max_extent,0.3*max_extent}},
-              {"middle_layer",  {0.3*max_extent,0.6*max_extent}},
-              {"outer_layer",  {0.6*max_extent,max_extent}}
-            };
-
-    for (auto& seg: cell.segments()) {
-        unsigned nseg = 1; //depends on segment length
-        if (!seg->is_soma()) {
-            std::vector<double> x_interp, y_interp, z_interp;
-            auto locs = seg->as_cable()->locations();
-            for (unsigned i = 0; i < locs.size()- 1; i++) {
-                auto x0 = locs[i].x;
-                auto y0 = locs[i].y;
-                auto z0 = locs[i].z;
-                auto x1 = locs[i + 1].x;
-                auto y1 = locs[i + 1].y;
-                auto z1 = locs[i + 1].z;
-                auto x_t = linspace(x0, x1, nseg+2);
-                auto y_t = linspace(y0, y1, nseg+2);
-                auto z_t = linspace(z0, z1, nseg+2);
-                x_interp.insert(x_interp.end(), x_t.begin(), x_t.end()-1);
-                y_interp.insert(y_interp.end(), y_t.begin(), y_t.end()-1);
-                z_interp.insert(z_interp.end(), z_t.begin(), z_t.end()-1);
-            }
-            x_interp.push_back(locs.back().x);
-            y_interp.push_back(locs.back().y);
-            z_interp.push_back(locs.back().z);
-
-            auto norm = normalize(x_interp, y_interp, z_interp, seg->as_cable()->length());
-            auto ext = extent(x_interp, y_interp, z_interp, cell.soma()->center());
-
-            layers l;
-            for (unsigned i = 0; i< ext.size(); i++) {
-                for (auto e: layer_extents) {
-                    if (ext[i] >= e.second.first && ext[i] < e.second.second) {
-                        l.map[e.first].push_back(norm[i]);
-                    }
-                }
-            }
-            segment_layer_dist.push_back(std::move(l));
-        }
-    }
-
-    std::vector<layers> segment_layer_pos;
-    for (auto s: segment_layer_dist) {
-        unsigned nseg = 1; // property of branch
-        auto branch_pos = linspace(0.5/nseg, 1-0.5/nseg, nseg);
-        std::vector<double> abs_diff;
-
-        layers l;
-        for (auto layer: s.map) {
-            for (auto v : layer.second) {
-                abs_diff = branch_pos;
-                for (auto& a: abs_diff) {
-                    a = std::abs(a - v);
-                }
-                unsigned idx = std::min_element(abs_diff.begin(), abs_diff.end() ) - abs_diff.begin();
-                l.map[layer.first].push_back(branch_pos[idx]);
-            }
-
-            auto last = std::unique(l.map[layer.first].begin(), l.map[layer.first].end());
-            l.map[layer.first].erase(last, l.map[layer.first].end());
-        }
-        segment_layer_pos.push_back(std::move(l));
-    }
-
-    layers soma;
-    soma.map["soma_layer"].push_back(0.5);
-    segment_layer_pos.insert(segment_layer_pos.begin(), soma);
-
-    for (auto i: segment_layer_pos) {
-        std::cout << "[";
-        for (auto l : i.map["soma_layer"]) {
-            std::cout << l << " ";
-        }
-        std::cout << "]" << std::endl;
-
-        std::cout << "[";
-        for (auto l : i.map["granule_layer"]) {
-            std::cout << l << " ";
-        }
-        std::cout << "]" << std::endl;
-
-        std::cout << "[";
-        for (auto l : i.map["inner_layer"]) {
-            std::cout << l << " ";
-        }
-        std::cout << "]" << std::endl;
-
-        std::cout << "[";
-        for (auto l : i.map["middle_layer"]) {
-            std::cout << l << " ";
-        }
-        std::cout << "]" << std::endl;
-
-        std::cout << "[";
-        for (auto l : i.map["outer_layer"]) {
-            std::cout << l << " ";
-        }
-        std::cout << "]" << std::endl << std::endl;
-    }
 
     cell.add_detector({0, 0}, 10);
 
@@ -444,11 +274,9 @@ arb::cable_cell granule_cell(arb::cell_gid_type gid, std::string filename) {
     for (unsigned i = 0; i < segment_layer_pos.size(); i++) {
         for (auto layer: segment_layer_pos[i].map) {
             for (auto j: layer.second) {
-                std::cout << i << " " << j <<std::endl;
                 cell.add_synapse({i, j}, exp2syn);
             }
         }
-        std::cout << std::endl;
     }
 
     for (auto& segment: cell.segments()) {

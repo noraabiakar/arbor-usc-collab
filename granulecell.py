@@ -141,8 +141,6 @@ def getBiophysics(cell):
     # Now, insert the proper biophysics for each section.
     for sec in cell.c.all:
         sec.insert('hh')
-        print(sec.ek)
-        print(sec.ena)
     #     sec.insert('ccanl')
     #     sec.catau_ccanl=10*cell.k1
     #     sec.caiinf_ccanl=5.0e-6*cell.l1
