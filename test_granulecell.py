@@ -63,7 +63,6 @@ w_MEA_av = 1.17e-4
 net_cons = []
 for ii in range(num_input):
     choice = neuron_DG.ranGen.randint(0,len(neuron_DG.synGroups['AMPA']['middleThird'])-1)
-    print(choice)
     nc = h.NetCon(vecstims[ii], neuron_DG.synGroups['AMPA']['middleThird'][choice])
     neuron_DG.synGroups['AMPA']['middleThird'][choice].tau1 = 0.709067133592
     neuron_DG.synGroups['AMPA']['middleThird'][choice].tau2 = 4.79049393295

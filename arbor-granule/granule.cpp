@@ -47,7 +47,7 @@ using arb::cell_probe_address;
 void write_trace_json(const arb::trace_data<double>& trace);
 
 // Generate a cell.
-arb::cable_cell granule_cell(std::string filename, std::vector<double_layers> segment_layer_pos);
+arb::cable_cell granule_cell(std::string filename, std::vector<double_layers> segment_layer_pos, double res);
 
 class granule_recipe: public arb::recipe {
 public:
@@ -61,7 +61,7 @@ public:
     }
 
     arb::util::unique_any get_cell_description(cell_gid_type gid) const override {
-        auto cell = granule_cell(params_.morph_file, syn_pos_);
+        auto cell = granule_cell(params_.morph_file, syn_pos_, params_.seg_res);
         return std::move(cell);
     }
 
@@ -256,13 +256,23 @@ void write_trace_json(const arb::trace_data<double>& trace) {
 
 arb::cable_cell granule_cell(
         std::string filename,
-        std::vector<double_layers> segment_layer_pos) {
+        std::vector<double_layers> segment_layer_pos,
+        double res) {
 
     std::ifstream f(filename);
     if (!f) throw std::runtime_error("unable to open file");
 
     auto morph = arb::swc_as_morphology(arb::parse_swc_file(f));
     arb::cable_cell cell = arb::make_cable_cell(morph);
+
+    for (auto& segment: cell.segments()) {
+        if (!segment->as_soma()) {
+            auto length = segment->as_cable()->length();
+            auto n = (unsigned) std::ceil(length / res);
+            segment->set_compartments(n);
+            std::cout << segment->num_compartments() << std::endl;
+        }
+    }
 
     cell.add_detector({0, 0}, 10);
 

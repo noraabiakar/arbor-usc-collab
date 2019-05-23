@@ -219,8 +219,10 @@ class Cell:
             for sec in self.dendTypeList[dendType]:
                 if sec.L >= nseg_res:
                     sec.nseg = int(np.ceil(sec.L/nseg_res))
+                    print(sec.nseg)
                 else:
                     sec.nseg = 1
+                    print "else ", sec.nseg
 
     ########################################################################
     # Function that assigns number of segments based on                    #
