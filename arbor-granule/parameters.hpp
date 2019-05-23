@@ -10,14 +10,17 @@
 std::vector<double> read_spike_times();
 template <typename T>
 struct layers {
-    std::unordered_map<std::string, std::vector<T>> map =
-            { {"soma_layer",    {}},
-              {"granule_layer", {}},
-              {"inner_layer",   {}},
-              {"middle_layer",  {}},
-              {"outer_layer",  {}}
+    std::unordered_map<std::string, T> map =
+            { {"soma_layer",    T()},
+              {"granule_layer", T()},
+              {"inner_layer",   T()},
+              {"middle_layer",  T()},
+              {"outer_layer",   T()}
             };
 };
+using double_layers = layers<std::vector<double>>;
+using unsigned_layers = layers<std::vector<unsigned>>;
+using pair_layers = layers<std::pair<double, double>>;
 
 struct granule_params {
     std::string morph_file;
@@ -97,113 +100,112 @@ std::vector<double> extent(const std::vector<double>& x,
     return ext;
 }
 
-std::vector<layers<double>> get_synapse_positions(std::string filename, double res) {
-     std::ifstream f(filename);
-     if (!f) throw std::runtime_error("unable to open file");
+std::vector<double_layers> get_synapse_positions(std::string filename, double res) {
+    std::ifstream f(filename);
+    if (!f) throw std::runtime_error("unable to open file");
 
-     auto morph = arb::swc_as_morphology(arb::parse_swc_file(f));
-     arb::cable_cell cell = arb::make_cable_cell(morph);
+    auto morph = arb::swc_as_morphology(arb::parse_swc_file(f));
+    arb::cable_cell cell = arb::make_cable_cell(morph);
 
-     auto soma_loc = cell.soma()->center();
-     double max_extent = 0.0;
-     for (auto& seg: cell.segments()) {
-         if (!seg->is_soma()) {
-             auto locs = seg->as_cable()->locations();
-             for (auto l :locs) {
-                 auto diff = l - soma_loc;
-                 auto dist = diff.z;
-                 if (dist > max_extent) {
-                     max_extent = dist;
-                 }
+    auto soma_loc = cell.soma()->center();
+    double max_extent = 0.0;
+    for (auto& seg: cell.segments()) {
+     if (!seg->is_soma()) {
+         auto locs = seg->as_cable()->locations();
+         for (auto l :locs) {
+             auto diff = l - soma_loc;
+             auto dist = diff.z;
+             if (dist > max_extent) {
+                 max_extent = dist;
              }
          }
      }
+    }
 
-     std::vector<layers<double>> segment_layer_dist;
-     std::vector<unsigned> nseg;
+    std::vector<double_layers> segment_layer_dist;
+    std::vector<unsigned> nseg;
 
-     std::unordered_map<std::string, std::pair<double, double>> layer_extents =
-             { {"soma_layer",    {0,0}},
-               {"granule_layer", {0,0.1*max_extent}},
-               {"inner_layer",   {0.1*max_extent,0.3*max_extent}},
-               {"middle_layer",  {0.3*max_extent,0.6*max_extent}},
-               {"outer_layer",  {0.6*max_extent,max_extent}}
-             };
+    pair_layers layer_extents;
+    layer_extents.map["soma_layer"] = {0,0};
+    layer_extents.map["granule_layer"] = {0,0.1*max_extent};
+    layer_extents.map["inner_layer"] = {0.1*max_extent,0.3*max_extent};
+    layer_extents.map["middle_layer"] =  {0.3*max_extent,0.6*max_extent};
+    layer_extents.map["outer_layer"] = {0.6*max_extent,max_extent};
 
-     for (auto& seg: cell.segments()) {
-         if (!seg->is_soma()) {
-             std::vector<double> x_interp, y_interp, z_interp;
-             auto length = seg->as_cable()->length();
-             auto n = (unsigned)std::ceil(length/res);
-             nseg.push_back(n);
-             seg->as_cable()->set_compartments(n);
+    for (auto& seg: cell.segments()) {
+     if (!seg->is_soma()) {
+         std::vector<double> x_interp, y_interp, z_interp;
+         auto length = seg->as_cable()->length();
+         auto n = (unsigned)std::ceil(length/res);
+         nseg.push_back(n);
+         seg->as_cable()->set_compartments(n);
 
-             auto locs = seg->as_cable()->locations();
-             for (unsigned i = 0; i < locs.size()- 1; i++) {
-                 auto x0 = locs[i].x;
-                 auto y0 = locs[i].y;
-                 auto z0 = locs[i].z;
-                 auto x1 = locs[i + 1].x;
-                 auto y1 = locs[i + 1].y;
-                 auto z1 = locs[i + 1].z;
-                 auto x_t = linspace(x0, x1, n+2);
-                 auto y_t = linspace(y0, y1, n+2);
-                 auto z_t = linspace(z0, z1, n+2);
-                 x_interp.insert(x_interp.end(), x_t.begin(), x_t.end()-1);
-                 y_interp.insert(y_interp.end(), y_t.begin(), y_t.end()-1);
-                 z_interp.insert(z_interp.end(), z_t.begin(), z_t.end()-1);
-             }
-             x_interp.push_back(locs.back().x);
-             y_interp.push_back(locs.back().y);
-             z_interp.push_back(locs.back().z);
+         auto locs = seg->as_cable()->locations();
+         for (unsigned i = 0; i < locs.size()- 1; i++) {
+             auto x0 = locs[i].x;
+             auto y0 = locs[i].y;
+             auto z0 = locs[i].z;
+             auto x1 = locs[i + 1].x;
+             auto y1 = locs[i + 1].y;
+             auto z1 = locs[i + 1].z;
+             auto x_t = linspace(x0, x1, n+2);
+             auto y_t = linspace(y0, y1, n+2);
+             auto z_t = linspace(z0, z1, n+2);
+             x_interp.insert(x_interp.end(), x_t.begin(), x_t.end()-1);
+             y_interp.insert(y_interp.end(), y_t.begin(), y_t.end()-1);
+             z_interp.insert(z_interp.end(), z_t.begin(), z_t.end()-1);
+         }
+         x_interp.push_back(locs.back().x);
+         y_interp.push_back(locs.back().y);
+         z_interp.push_back(locs.back().z);
 
-             auto norm = normalize(x_interp, y_interp, z_interp, seg->as_cable()->length());
-             auto ext = extent(x_interp, y_interp, z_interp, cell.soma()->center());
+         auto norm = normalize(x_interp, y_interp, z_interp, seg->as_cable()->length());
+         auto ext = extent(x_interp, y_interp, z_interp, cell.soma()->center());
 
-             layers<double> l;
-             for (unsigned i = 0; i< ext.size(); i++) {
-                 for (auto e: layer_extents) {
-                     if (ext[i] >= e.second.first && ext[i] < e.second.second) {
-                         l.map[e.first].push_back(norm[i]);
-                     }
+         double_layers l;
+         for (unsigned i = 0; i< ext.size(); i++) {
+             for (auto e: layer_extents.map) {
+                 if (ext[i] >= e.second.first && ext[i] < e.second.second) {
+                     l.map[e.first].push_back(norm[i]);
                  }
              }
-             segment_layer_dist.push_back(std::move(l));
          }
+         segment_layer_dist.push_back(std::move(l));
      }
+    }
 
-     std::vector<layers<double>> segment_layer_pos;
-     for (unsigned i = 0; i < segment_layer_dist.size(); i++) {
-         unsigned n = nseg[i];
-         auto branch_pos = linspace(0.5/n, 1-0.5/n, n);
-         std::vector<double> abs_diff;
+    std::vector<double_layers> segment_layer_pos;
+    for (unsigned i = 0; i < segment_layer_dist.size(); i++) {
+     unsigned n = nseg[i];
+     auto branch_pos = linspace(0.5/n, 1-0.5/n, n);
+     std::vector<double> abs_diff;
 
-         layers<double> l;
-         for (auto layer: segment_layer_dist[i].map) {
-             for (auto v : layer.second) {
-                 abs_diff = branch_pos;
-                 for (auto& a: abs_diff) {
-                     a = std::abs(a - v);
-                 }
-                 unsigned idx = std::min_element(abs_diff.begin(), abs_diff.end() ) - abs_diff.begin();
-                 l.map[layer.first].push_back(branch_pos[idx]);
+     double_layers l;
+     for (auto layer: segment_layer_dist[i].map) {
+         for (auto v : layer.second) {
+             abs_diff = branch_pos;
+             for (auto& a: abs_diff) {
+                 a = std::abs(a - v);
              }
-
-             auto last = std::unique(l.map[layer.first].begin(), l.map[layer.first].end());
-             l.map[layer.first].erase(last, l.map[layer.first].end());
+             unsigned idx = std::min_element(abs_diff.begin(), abs_diff.end() ) - abs_diff.begin();
+             l.map[layer.first].push_back(branch_pos[idx]);
          }
-         segment_layer_pos.push_back(std::move(l));
+
+         auto last = std::unique(l.map[layer.first].begin(), l.map[layer.first].end());
+         l.map[layer.first].erase(last, l.map[layer.first].end());
      }
+     segment_layer_pos.push_back(std::move(l));
+    }
 
-     layers<double> soma;
-     soma.map["soma_layer"].push_back(0.5);
-     segment_layer_pos.insert(segment_layer_pos.begin(), soma);
+    double_layers soma;
+    soma.map["soma_layer"].push_back(0.5);
+    segment_layer_pos.insert(segment_layer_pos.begin(), soma);
 
-     return segment_layer_pos;
+    return segment_layer_pos;
 }
 
-layers<unsigned> get_synapse_ids(const std::vector<layers<double>>& syn_pos) {
-    layers<unsigned> syn_ids;
+unsigned_layers get_synapse_ids(const std::vector<double_layers>& syn_pos) {
+    unsigned_layers syn_ids;
     unsigned id = 0;
     for (auto sp: syn_pos) {
         for (auto layer: sp.map) {

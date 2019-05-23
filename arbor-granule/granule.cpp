@@ -47,13 +47,13 @@ using arb::cell_probe_address;
 void write_trace_json(const arb::trace_data<double>& trace);
 
 // Generate a cell.
-arb::cable_cell granule_cell(std::string filename, std::vector<layers<double>> segment_layer_pos);
+arb::cable_cell granule_cell(std::string filename, std::vector<double_layers> segment_layer_pos);
 
 class granule_recipe: public arb::recipe {
 public:
     granule_recipe(const granule_params& gparams,
-                   const std::vector<layers<double>>& syn_pos,
-                   const layers<unsigned>& syn_ids):
+                   const std::vector<double_layers>& syn_pos,
+                   const unsigned_layers& syn_ids):
         num_cells_(1), params_(gparams), syn_pos_(syn_pos), syn_ids_(syn_ids) {}
 
     cell_size_type num_cells() const override {
@@ -83,7 +83,7 @@ public:
         std::vector<arb::event_generator> gens;
         arb::pse_vector svec;
         for (auto s: params_.spikes) {
-            svec.push_back({{0, 9}, s, event_weight_});
+            svec.push_back({{0, 136}, s, event_weight_});
         }
         gens.push_back(arb::explicit_generator(svec));
         return gens;
@@ -114,8 +114,8 @@ public:
 private:
     cell_size_type num_cells_;
     granule_params params_;
-    layers<unsigned> syn_ids_;
-    std::vector<layers<double>> syn_pos_;
+    unsigned_layers syn_ids_;
+    std::vector<double_layers> syn_pos_;
     float event_weight_ = 1.17e-4;
 };
 
@@ -256,7 +256,7 @@ void write_trace_json(const arb::trace_data<double>& trace) {
 
 arb::cable_cell granule_cell(
         std::string filename,
-        std::vector<layers<double>> segment_layer_pos) {
+        std::vector<double_layers> segment_layer_pos) {
 
     std::ifstream f(filename);
     if (!f) throw std::runtime_error("unable to open file");
