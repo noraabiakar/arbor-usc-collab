@@ -27,7 +27,7 @@ neuron_DG = cell.Cell(ID,location,synvars,celltype,fname_morph,modeltype)
 # Create spike times for input #
 ################################
 num_input = 1
-tstop = 10000 # unts: ms
+tstop = 200 # unts: ms
 frequency = 5 # units: Hz
 
 vecstims = [h.VecStim() for ii in range(num_input)]
@@ -55,14 +55,14 @@ for ii in range(num_input):
             
             vecstims[ii].play(evecs[ii])
 
-
 #####################
 # Connecting inputs #
 #####################
-w_MEA_av = 1.17e-4
+w_MEA_av = 1.17
 net_cons = []
 for ii in range(num_input):
     choice = neuron_DG.ranGen.randint(0,len(neuron_DG.synGroups['AMPA']['middleThird'])-1)
+    choice = 63
     nc = h.NetCon(vecstims[ii], neuron_DG.synGroups['AMPA']['middleThird'][choice])
     neuron_DG.synGroups['AMPA']['middleThird'][choice].tau1 = 0.709067133592
     neuron_DG.synGroups['AMPA']['middleThird'][choice].tau2 = 4.79049393295
@@ -85,12 +85,12 @@ t.record(h._ref_t)
 #########################
 h.v_init = -70
 h.t = 0
-h.dt = 0.025
+h.dt = 0.001
 h.celsius = 35.0
 h("tstep = 0")
 h("period = 2")
 h.tstop = tstop
-h("steps_per_ms = 10")
+h("steps_per_ms = 1000")
 h.load_file('hoc_files/negative_init.hoc')
 
 ##################

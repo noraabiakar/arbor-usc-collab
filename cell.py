@@ -105,9 +105,14 @@ class Cell:
                 self.segLocDict['Apical']['soma'][ii].append(self.center[ii])
 
             # Create synapses
+            all = []
+            all.append(self.celltype.getSoma(self))
+            for d in self.dendTypeList['Apical']:
+                all.append(d)
+            
             for dendType in self.layerDict:
                 for synType in self.synGroups:
-                    self.addSegmentSynapse(self.layerDict[dendType],self.dist2sec[dendType],self.distKeys[dendType],self.synGroups[synType],synType)
+                    self.addSegmentSynapse(self.layerDict[dendType],all,self.synGroups[synType],synType)
 
             # Add biophysics
             self.celltype.getBiophysics(self)
@@ -219,10 +224,8 @@ class Cell:
             for sec in self.dendTypeList[dendType]:
                 if sec.L >= nseg_res:
                     sec.nseg = int(np.ceil(sec.L/nseg_res))
-                    print(sec.nseg)
                 else:
                     sec.nseg = 1
-                    print "else ", sec.nseg
 
     ########################################################################
     # Function that assigns number of segments based on                    #
@@ -477,11 +480,32 @@ class Cell:
     # append the synapse to the corresponding list based on which layer   #
     # the segment lies                                                    #
     #######################################################################
-    def addSegmentSynapse(self,layerDict,dist2sec,distKeys,synList,synType):
-        for layer in layerDict:
-            for dist in distKeys:
-                sec_choice = dist2sec[dist]
-                for seg_choice in layerDict[layer][sec_choice]:
+    def addSegmentSynapse(self,layerDict,list,synList,synType):
+        soma_list = []
+        gran_list = []
+        in_list = []
+        mid_list = []
+        out_list = []
+
+        for sec_choice in list:
+            print sec_choice
+            for layer in layerDict:
+                dict = layerDict[layer]
+                for seg_choice in dict[sec_choice]:
+                    if layer == "soma":
+                        soma_list.append([sec_choice, seg_choice])
+                    else:
+                        if layer == "granuleCellLayer":
+                            gran_list.append([sec_choice, seg_choice])
+                        else:
+                            if layer == "innerThird":
+                                in_list.append([sec_choice, seg_choice])
+                            else:
+                                if layer == "middleThird":
+                                    mid_list.append([sec_choice, seg_choice])
+                                else:
+                                    if layer == "outerThird":
+                                        out_list.append([sec_choice, seg_choice])
                     nmda_flag = 0
                     if self.synvars['type'] == "E2-NMDA2":
                         syn = h.Exp2Syn(sec_choice(seg_choice))
@@ -523,6 +547,86 @@ class Cell:
                             synList[layer].append(syn)
                     else:
                         synList[layer].append(syn)
+
+        # for layer in layerDict:
+        #     for dist in distKeys:
+        #         sec_choice = dist2sec[dist]
+        #         for seg_choice in layerDict[layer][sec_choice]:
+        #             if layer == "soma":
+        #                 soma_list.append([sec_choice, seg_choice])
+        #             else:
+        #                 if layer == "granuleCellLayer":
+        #                     gran_list.append([sec_choice, seg_choice])
+        #                 else:
+        #                     if layer == "innerThird":
+        #                         in_list.append([sec_choice, seg_choice])
+        #                     else:
+        #                         if layer == "middleThird":
+        #                             mid_list.append([sec_choice, seg_choice])
+        #                         else:
+        #                             if layer == "outerThird":
+        #                                 out_list.append([sec_choice, seg_choice])
+        #             nmda_flag = 0
+        #             if self.synvars['type'] == "E2-NMDA2":
+        #                 syn = h.Exp2Syn(sec_choice(seg_choice))
+        #                 nmda = h.Exp2NMDA_Wang(sec_choice(seg_choice))
+        #                 nmda_flag = 1
+        #             if self.synvars['type'] == "E2":
+        #                 syn = h.Exp2Syn(sec_choice(seg_choice))
+        #             if self.synvars['type'] == "E2_Prob":
+        #                 syn = h.E2_Prob(sec_choice(seg_choice))
+        #                 syn.P = self.synvars['P']
+        #             if self.synvars['type'] == "E2_STP_Prob":
+        #                 syn = h.E2_STP_Prob(sec_choice(seg_choice))
+        #             if self.synvars['type'] == "STDPE2":
+        #                 syn = h.STDPE2(sec_choice(seg_choice))
+        #             if self.synvars['type'] == "STDPE2_Clo":
+        #                 syn = h.STDPE2_Clo(sec_choice(seg_choice))
+        #             if self.synvars['type'] == "STDPE2_STP"	:
+        #                 syn = h.STDPE2_STP(sec_choice(seg_choice))
+        #             if self.synvars['type'] == "STDPE2_Prob":
+        #                 syn = h.STDPE2_Prob(sec_choice(seg_choice))
+        #                 syn.P = self.synvars['P']
+        #             #initializes different variables depending on synapse
+        #             if (self.synvars['type'] == "STDPE2_STP")|(self.synvars['type'] == "E2_STP_Prob"):
+        #                 syn.F1 = self.synvars['F1']
+        #             if  (self.synvars['type'] == "STDPE2_Clo" )|( self.synvars['type'] == "STDPE2_STP")|( self.synvars['type'] == "STDPE2")| (self.synvars['type'] == "STDPE2_Prob"):
+        #                 syn.wmax = self.synvars['wmax']
+        #                 syn.wmin = self.synvars['wmin']
+        #                 syn.thresh = self.synvars['thresh']
+        #             if  (self.synvars['type'] == "E2_Prob" )|( self.synvars['type'] == "E2_STP_Prob")|(self.synvars['type'] == "STDPE2_STP") | (self.synvars['type'] == "STDPE2_Prob"):
+        #                 h.use_mcell_ran4(1)
+        #                 syn.seed = self.ranGen.randint(1,4.295e9)
+        #             syn.tau1 = 0.5
+        #             syn.tau2 = 0.6
+        #             syn.e = 0
+        #             if nmda_flag == 1:
+        #                 if synType == 'NMDA':
+        #                     synList[layer].append(nmda)
+        #                 else:
+        #                     synList[layer].append(syn)
+        #             else:
+        #                 synList[layer].append(syn)
+
+        print "soma"
+        for i in range(len(soma_list)):
+            print i, soma_list[i]
+        print
+        print "GCL"
+        for i in range(len(gran_list)):
+            print i, gran_list[i]
+        print
+        print "in"
+        for i in range(len(in_list)):
+            print i, in_list[i]
+        print
+        print "mid"
+        for i in range(len(mid_list)):
+            print i, mid_list[i]
+        print
+        print "out"
+        for i in range(len(out_list)):
+            print i, out_list[i]
 
     '''###########################################
     # 5. Code to save out data from each segment #

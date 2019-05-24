@@ -43,6 +43,8 @@ using arb::cell_kind;
 using arb::time_type;
 using arb::cell_probe_address;
 
+#define SYN 134
+
 // Writes voltage trace as a json file.
 void write_trace_json(const arb::trace_data<double>& trace);
 
@@ -83,7 +85,7 @@ public:
         std::vector<arb::event_generator> gens;
         arb::pse_vector svec;
         for (auto s: params_.spikes) {
-            svec.push_back({{0, 136}, s, event_weight_});
+            svec.push_back({{0, SYN}, s, event_weight_});
         }
         gens.push_back(arb::explicit_generator(svec));
         return gens;
@@ -116,7 +118,7 @@ private:
     granule_params params_;
     unsigned_layers syn_ids_;
     std::vector<double_layers> syn_pos_;
-    float event_weight_ = 1.17e-4;
+    float event_weight_ = 1.17;
 };
 
 
@@ -173,7 +175,7 @@ int main(int argc, char** argv) {
         // The id of the only probe on the cell: the cell_member type points to (cell 0, probe 0)
         auto probe_id = cell_member_type{0, 0};
         // The schedule for sampling is 10 samples every 1 ms.
-        auto sched = arb::regular_schedule(0.1);
+        auto sched = arb::regular_schedule(0.0025);
         // This is where the voltage samples will be stored as (time, value) pairs
         arb::trace_data<double> voltage;
         // Now attach the sampler at probe_id, with sampling schedule sched, writing to voltage
@@ -192,7 +194,7 @@ int main(int argc, char** argv) {
 
         std::cout << "running simulation" << std::endl;
         // Run the simulation for 100 ms, with time steps of 0.025 ms.
-        sim.run(10000, 0.025);
+        sim.run(200, 0.001);
 
         meters.checkpoint("model-run", context);
 
@@ -201,7 +203,7 @@ int main(int argc, char** argv) {
         // Write spikes to file
         if (root) {
             std::cout << "\n" << ns << " spikes generated at rate of "
-                      << 10000 << " ms between spikes\n";
+                      << 200 << " ms between spikes\n";
             std::ofstream fid("spikes.gdf");
             if (!fid.good()) {
                 std::cerr << "Warning: unable to open file spikes.gdf for spike output\n";
@@ -270,29 +272,49 @@ arb::cable_cell granule_cell(
             auto length = segment->as_cable()->length();
             auto n = (unsigned) std::ceil(length / res);
             segment->set_compartments(n);
-            std::cout << segment->num_compartments() << std::endl;
         }
     }
 
-    cell.add_detector({0, 0}, 10);
+    std::vector<std::pair<unsigned, double>> fm;
 
-    arb::mechanism_desc exp2syn("exp2syn");
-    exp2syn["tau1"] = 0.709067133592;
-    exp2syn["tau2"] = 4.79049393295;
-    exp2syn["e"] = 0;
-
+    int c = 0;
     for (unsigned i = 0; i < segment_layer_pos.size(); i++) {
         for (auto layer: segment_layer_pos[i].map) {
             for (auto j: layer.second) {
-                cell.add_synapse({i, j}, exp2syn);
+                if(c == SYN) {
+                    arb::mechanism_desc exp2syn("exp2syn");
+                    exp2syn["tau1"] = 0.709067133592;
+                    exp2syn["tau2"] = 4.79049393295;
+                    exp2syn["e"] = 0;
+                    cell.add_synapse({i, j}, exp2syn);
+                }
+                else {
+                    arb::mechanism_desc exp2syn("exp2syn");
+                    exp2syn["tau1"] = 0.5;
+                    exp2syn["tau2"] = 0.6;
+                    exp2syn["e"] = 0;
+                    cell.add_synapse({i, j}, exp2syn);
+                }
+                fm.push_back({i, j});
+                c++;
             }
         }
     }
 
+    arb::mechanism_desc hh("hh");
+    hh["gnabar"] = 0.6;
+    hh["gkbar"] = 0.18;
+    hh["gl"] = 0.0015;
+    hh["ena"] = 50;
+    hh["ek"] = -77;
+
     for (auto& segment: cell.segments()) {
-        segment->add_mechanism("hh");
+        segment->add_mechanism(hh);
     }
 
+    for (unsigned i =0; i < fm.size(); i++) {
+        std::cout << i << " : ("<< fm[i].first << ", " << fm[i].second <<")\n";
+    }
     return cell;
 }
 

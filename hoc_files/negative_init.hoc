@@ -4,7 +4,7 @@ proc init() { local dtsav, temp
     dtsav = dt
     dt = 1e9
     // if cvode is on, turn it off to do a large fixed step
-    tmp = cvode.active()
+    temp = cvode.active()
     if (temp!=0) { cvode.active(0) }
     while (t<-1e9) {
         fadvance()
