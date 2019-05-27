@@ -483,19 +483,54 @@ class Cell:
     def addSegmentSynapse(self,layerDict,list,synList,synType,in_param):
 
         for layer in sorted(layerDict.keys()):
-            c = 0;
+            c = 0
             for sec_choice in list:
                 dict = layerDict[layer]
                 for seg_choice in dict[sec_choice]:
-                    if layer == in_param["syn_layer"] and c == in_param["syn_id"]:
-                        print layer, sec_choice, seg_choice
-
-                    syn = h.Exp2Syn(sec_choice(seg_choice))
-                    c = c +1;
-                    syn.tau1 = in_param["tau1_reg"]
-                    syn.tau2 = in_param["tau2_reg"]
-                    syn.e = in_param["e_reg"]
-                    synList[layer].append(syn)
+                    nmda_flag = 0
+                    if self.synvars['type'] == "E2-NMDA2":
+                        syn = h.Exp2Syn(sec_choice(seg_choice))
+                        nmda = h.Exp2NMDA_Wang(sec_choice(seg_choice))
+                        nmda_flag = 1
+                    if self.synvars['type'] == "E2":
+                        if layer == in_param["syn_layer"] and c == in_param["syn_id"]:
+                            print layer, sec_choice, seg_choice
+                        c = c+1
+                        syn = h.Exp2Syn(sec_choice(seg_choice))
+                    if self.synvars['type'] == "E2_Prob":
+                        syn = h.E2_Prob(sec_choice(seg_choice))
+                        syn.P = self.synvars['P']
+                    if self.synvars['type'] == "E2_STP_Prob":
+                        syn = h.E2_STP_Prob(sec_choice(seg_choice))
+                    if self.synvars['type'] == "STDPE2":
+                        syn = h.STDPE2(sec_choice(seg_choice))
+                    if self.synvars['type'] == "STDPE2_Clo":
+                        syn = h.STDPE2_Clo(sec_choice(seg_choice))
+                    if self.synvars['type'] == "STDPE2_STP"	:
+                        syn = h.STDPE2_STP(sec_choice(seg_choice))
+                    if self.synvars['type'] == "STDPE2_Prob":
+                        syn = h.STDPE2_Prob(sec_choice(seg_choice))
+                        syn.P = self.synvars['P']
+                    #initializes different variables depending on synapse
+                    if (self.synvars['type'] == "STDPE2_STP")|(self.synvars['type'] == "E2_STP_Prob"):
+                        syn.F1 = self.synvars['F1']
+                    if  (self.synvars['type'] == "STDPE2_Clo" )|( self.synvars['type'] == "STDPE2_STP")|( self.synvars['type'] == "STDPE2")| (self.synvars['type'] == "STDPE2_Prob"):
+                        syn.wmax = self.synvars['wmax']
+                        syn.wmin = self.synvars['wmin']
+                        syn.thresh = self.synvars['thresh']
+                    if  (self.synvars['type'] == "E2_Prob" )|( self.synvars['type'] == "E2_STP_Prob")|(self.synvars['type'] == "STDPE2_STP") | (self.synvars['type'] == "STDPE2_Prob"):
+                        h.use_mcell_ran4(1)
+                        syn.seed = self.ranGen.randint(1,4.295e9)
+                    syn.tau1 = 0.5
+                    syn.tau2 = 0.6
+                    syn.e = 0
+                    if nmda_flag == 1:
+                        if synType == 'NMDA':
+                            synList[layer].append(nmda)
+                        else:
+                            synList[layer].append(syn)
+                    else:
+                        synList[layer].append(syn)
 
     '''###########################################
     # 5. Code to save out data from each segment #

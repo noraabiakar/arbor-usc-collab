@@ -281,6 +281,7 @@ arb::cable_cell granule_cell(
             auto length = segment->as_cable()->length();
             auto n = (unsigned) std::ceil(length / params.seg_res);
             segment->set_compartments(n);
+            std::cout << "\t" << segment->num_compartments() << std::endl;
         }
     }
 
@@ -318,6 +319,7 @@ arb::cable_cell granule_cell(
         hh["ek"] = params.hh_ek;
 
         segment->add_mechanism(hh);
+        segment->rL = 35.4;
     }
 
     return cell;

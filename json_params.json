@@ -14,9 +14,9 @@
     "hh_gl": 0.0015, 
     "hh_ena": 50.0, 
     "hh_ek": -77.0, 
-    "syn_layer": "granuleCellLayer",
-    "syn_id": 0,
-    "seg_res": 1.0,
+    "syn_layer": "innerThird",
+    "syn_id": 20,
+    "seg_res": 0.5,
     "weight": 1.17, 
     "morph_file": "/home/abiakarn/git/usc_neuron/morphologies/output2_updated.swc"
 }
