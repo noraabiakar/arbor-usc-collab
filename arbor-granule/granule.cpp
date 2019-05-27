@@ -48,20 +48,20 @@ using arb::cell_probe_address;
 void write_trace_json(const arb::trace_data<double>& trace);
 
 // Generate a cell.
-arb::cable_cell granule_cell(std::string filename, synapse_layers syn_layers, double res, std::string layer, unsigned id);
+arb::cable_cell granule_cell(std::string filename, synapse_layers syn_layers, const granule_params& params);
 
 class granule_recipe: public arb::recipe {
 public:
     granule_recipe(const granule_params& gparams,
                    const synapse_layers& syn_layers):
-        num_cells_(1), params_(gparams), syn_layers_(syn_layers) {}
+        num_cells_(1), params_(gparams), syn_layers_(syn_layers), event_weight_(params_.weight) {}
 
     cell_size_type num_cells() const override {
         return num_cells_;
     }
 
     arb::util::unique_any get_cell_description(cell_gid_type gid) const override {
-        auto cell = granule_cell(params_.morph_file, syn_layers_, params_.seg_res, "middle_layer", 62);
+        auto cell = granule_cell(params_.morph_file, syn_layers_, params_);
         return std::move(cell);
     }
 
@@ -80,10 +80,20 @@ public:
     }
 
     std::vector<arb::event_generator> event_generators(cell_gid_type gid) const override {
+        unsigned glob_syn_id = 0;
+        for (auto layer: syn_layers_.map) {
+            if (layer.first == params_.syn_layer) {
+                break;
+            }
+            glob_syn_id += layer.second.size();
+        }
+        glob_syn_id += params_.syn_id;
+        std::cout << glob_syn_id << std::endl;
+
         std::vector<arb::event_generator> gens;
         arb::pse_vector svec;
         for (auto s: params_.spikes) {
-            svec.push_back({{0, SYN}, s, event_weight_});
+            svec.push_back({{0, glob_syn_id}, s, event_weight_});
         }
         gens.push_back(arb::explicit_generator(svec));
         return gens;
@@ -106,8 +116,8 @@ public:
 
     arb::util::any get_global_properties(cell_kind k) const override {
         arb::cable_cell_global_properties a;
-        a.temperature_K = 308.15;
-        a.init_membrane_potential_mV = -70;
+        a.temperature_K = params_.temp + 273.15;
+        a.init_membrane_potential_mV = params_.v_init;
         return a;
     }
 
@@ -115,7 +125,7 @@ private:
     cell_size_type num_cells_;
     granule_params params_;
     synapse_layers syn_layers_;
-    float event_weight_ = 1.17;
+    float event_weight_;
 };
 
 
@@ -154,7 +164,7 @@ int main(int argc, char** argv) {
         arb::profile::meter_manager meters;
         meters.start(context);
 
-        auto params = read_params();
+        auto params = read_params(argc, argv);
 
         auto syn_pos = get_synapse_positions(params.morph_file, params.seg_res);
         //auto syn_ids = get_synapse_ids(syn_pos);
@@ -172,7 +182,7 @@ int main(int argc, char** argv) {
         // The id of the only probe on the cell: the cell_member type points to (cell 0, probe 0)
         auto probe_id = cell_member_type{0, 0};
         // The schedule for sampling is 10 samples every 1 ms.
-        auto sched = arb::regular_schedule(0.0025);
+        auto sched = arb::regular_schedule(params.dt);
         // This is where the voltage samples will be stored as (time, value) pairs
         arb::trace_data<double> voltage;
         // Now attach the sampler at probe_id, with sampling schedule sched, writing to voltage
@@ -191,7 +201,7 @@ int main(int argc, char** argv) {
 
         std::cout << "running simulation" << std::endl;
         // Run the simulation for 100 ms, with time steps of 0.025 ms.
-        sim.run(200, 0.025);
+        sim.run(200, params.dt);
 
         meters.checkpoint("model-run", context);
 
@@ -256,9 +266,7 @@ void write_trace_json(const arb::trace_data<double>& trace) {
 arb::cable_cell granule_cell(
         std::string filename,
         synapse_layers syn_layers,
-        double res,
-        std::string layer_name,
-        unsigned layer_idx) {
+        const granule_params& params) {
 
     unsigned_layers synapse_ids;
 
@@ -271,41 +279,44 @@ arb::cable_cell granule_cell(
     for (auto& segment: cell.segments()) {
         if (!segment->as_soma()) {
             auto length = segment->as_cable()->length();
-            auto n = (unsigned) std::ceil(length / res);
+            auto n = (unsigned) std::ceil(length / params.seg_res);
             segment->set_compartments(n);
         }
     }
 
+    int tot = 0;
     for (auto layer: syn_layers.map) {
         int c = 0;
         for (auto v: layer.second) {
-            if(layer_name == layer.first && layer_idx == c) {
+            if(params.syn_layer == layer.first && params.syn_id == c) {
                 arb::mechanism_desc exp2syn("exp2syn");
-                exp2syn["tau1"] = 0.709067133592;
-                exp2syn["tau2"] = 4.79049393295;
-                exp2syn["e"] = 0;
+                exp2syn["tau1"] = params.tau1_syn;
+                exp2syn["tau2"] = params.tau2_syn;
+                exp2syn["e"] = params.e_syn;
                 cell.add_synapse({v.segment, v.pos}, exp2syn);
+                std::cout << params.syn_layer << " " <<params.syn_id << " " << tot << std::endl;
+                std::cout << v.segment << " " << v.pos << std::endl;
             }
             else {
                 arb::mechanism_desc exp2syn("exp2syn");
-                exp2syn["tau1"] = 0.5;
-                exp2syn["tau2"] = 0.6;
-                exp2syn["e"] = 0;
+                exp2syn["tau1"] = params.tau1_reg;
+                exp2syn["tau2"] = params.tau2_reg;
+                exp2syn["e"] = params.e_reg;
                 cell.add_synapse({v.segment, v.pos}, exp2syn);
             }
-            std::cout << layer.first << ": " << v.segment << ", " << v.pos << std::endl;
             c++;
+            tot++;
         }
     }
 
-    arb::mechanism_desc hh("hh");
-    hh["gnabar"] = 0.6;
-    hh["gkbar"] = 0.18;
-    hh["gl"] = 0.0015;
-    hh["ena"] = 50;
-    hh["ek"] = -77;
-
     for (auto& segment: cell.segments()) {
+        arb::mechanism_desc hh("hh");
+        hh["gnabar"] = params.hh_gnabar;
+        hh["gkbar"] = params.hh_gkbar;
+        hh["gl"] = params.hh_gl;
+        hh["ena"] = params.hh_ena;
+        hh["ek"] = params.hh_ek;
+
         segment->add_mechanism(hh);
     }
 

@@ -22,6 +22,7 @@ def makeLayerDict(cell):
     LayerDict['Apical']['soma'] = cell.soma
     LayerDict['Apical']['granuleCellLayer'] = cell.granuleCellLayer
     LayerDict['Apical']['innerThird'] = cell.innerThird
+    LayerDict['Apical']['innerThird'] = cell.innerThird
     LayerDict['Apical']['middleThird'] = cell.middleThird
     LayerDict['Apical']['outerThird'] = cell.outerThird
 
@@ -64,10 +65,6 @@ def getNewAxis():
     new_axis = {}
     new_axis['new_axis'] = [np.cos(np.pi/2),0,np.sin(np.pi/2)]
     return new_axis
-
-# Function to return the nseg resolution
-def getNsegRes():
-    return 5
 
 # Function to return soma
 def getSoma(cell):
@@ -120,7 +117,7 @@ def makeSegLocDict(cell):
     return SegLocDict
 
 # Function to specify the biophysics of the cell
-def getBiophysics(cell):
+def getBiophysics(cell, in_param):
     # cell.c.soma[0].L *= 2
     #
     # cell.RaMult = 1.0
@@ -141,11 +138,11 @@ def getBiophysics(cell):
     # Now, insert the proper biophysics for each section.
     for sec in cell.c.all:
         sec.insert('hh')
-        sec.gnabar_hh= 0.6
-        sec.gkbar_hh = 0.18
-        sec.gl_hh = 0.0015
-        sec.ena = 50
-        sec.ek = -77
+        sec.gnabar_hh= in_param["hh_gnabar"]
+        sec.gkbar_hh = in_param["hh_gkbar"]
+        sec.gl_hh = in_param["hh_gl"]
+        sec.ena = in_param["hh_ena"]
+        sec.ek = in_param["hh_ek"]
     #     sec.insert('ccanl')
     #     sec.catau_ccanl=10*cell.k1
     #     sec.caiinf_ccanl=5.0e-6*cell.l1
