@@ -1,0 +1,19 @@
+{
+    "temp": 35,
+    "vinit": -70,
+    "dt": 0.025,
+    "tau1_reg": 0.5,
+    "tau2_reg": 0.6,
+    "e_reg": 0, 
+    "tau1_syn": 0.709067133592,
+    "tau2_syn": 4.79049393295,
+    "e_syn": 0, 
+    "hh_gnabar": 0.6,
+    "hh_gkbar": 0.18, 
+    "hh_gl": 0.0015, 
+    "hh_ena": 50, 
+    "hh_ek": -77, 
+    "syn_branch": "middle_layer",
+    "syn_id": 62
+}
+

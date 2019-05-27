@@ -39,31 +39,29 @@ using arb::cell_gid_type;
 using arb::cell_lid_type;
 using arb::cell_size_type;
 using arb::cell_member_type;
+using arb::cell_member_type;
 using arb::cell_kind;
 using arb::time_type;
 using arb::cell_probe_address;
-
-#define SYN 134
 
 // Writes voltage trace as a json file.
 void write_trace_json(const arb::trace_data<double>& trace);
 
 // Generate a cell.
-arb::cable_cell granule_cell(std::string filename, std::vector<double_layers> segment_layer_pos, double res);
+arb::cable_cell granule_cell(std::string filename, synapse_layers syn_layers, double res, std::string layer, unsigned id);
 
 class granule_recipe: public arb::recipe {
 public:
     granule_recipe(const granule_params& gparams,
-                   const std::vector<double_layers>& syn_pos,
-                   const unsigned_layers& syn_ids):
-        num_cells_(1), params_(gparams), syn_pos_(syn_pos), syn_ids_(syn_ids) {}
+                   const synapse_layers& syn_layers):
+        num_cells_(1), params_(gparams), syn_layers_(syn_layers) {}
 
     cell_size_type num_cells() const override {
         return num_cells_;
     }
 
     arb::util::unique_any get_cell_description(cell_gid_type gid) const override {
-        auto cell = granule_cell(params_.morph_file, syn_pos_, params_.seg_res);
+        auto cell = granule_cell(params_.morph_file, syn_layers_, params_.seg_res, "middle_layer", 62);
         return std::move(cell);
     }
 
@@ -116,8 +114,7 @@ public:
 private:
     cell_size_type num_cells_;
     granule_params params_;
-    unsigned_layers syn_ids_;
-    std::vector<double_layers> syn_pos_;
+    synapse_layers syn_layers_;
     float event_weight_ = 1.17;
 };
 
@@ -160,10 +157,10 @@ int main(int argc, char** argv) {
         auto params = read_params();
 
         auto syn_pos = get_synapse_positions(params.morph_file, params.seg_res);
-        auto syn_ids = get_synapse_ids(syn_pos);
+        //auto syn_ids = get_synapse_ids(syn_pos);
 
         // Create an instance of our recipe.
-        granule_recipe recipe(params, syn_pos, syn_ids);
+        granule_recipe recipe(params, syn_pos);
 
         auto decomp = arb::partition_load_balance(recipe, context);
 
@@ -194,7 +191,7 @@ int main(int argc, char** argv) {
 
         std::cout << "running simulation" << std::endl;
         // Run the simulation for 100 ms, with time steps of 0.025 ms.
-        sim.run(200, 0.001);
+        sim.run(200, 0.025);
 
         meters.checkpoint("model-run", context);
 
@@ -258,8 +255,12 @@ void write_trace_json(const arb::trace_data<double>& trace) {
 
 arb::cable_cell granule_cell(
         std::string filename,
-        std::vector<double_layers> segment_layer_pos,
-        double res) {
+        synapse_layers syn_layers,
+        double res,
+        std::string layer_name,
+        unsigned layer_idx) {
+
+    unsigned_layers synapse_ids;
 
     std::ifstream f(filename);
     if (!f) throw std::runtime_error("unable to open file");
@@ -275,29 +276,25 @@ arb::cable_cell granule_cell(
         }
     }
 
-    std::vector<std::pair<unsigned, double>> fm;
-
-    int c = 0;
-    for (unsigned i = 0; i < segment_layer_pos.size(); i++) {
-        for (auto layer: segment_layer_pos[i].map) {
-            for (auto j: layer.second) {
-                if(c == SYN) {
-                    arb::mechanism_desc exp2syn("exp2syn");
-                    exp2syn["tau1"] = 0.709067133592;
-                    exp2syn["tau2"] = 4.79049393295;
-                    exp2syn["e"] = 0;
-                    cell.add_synapse({i, j}, exp2syn);
-                }
-                else {
-                    arb::mechanism_desc exp2syn("exp2syn");
-                    exp2syn["tau1"] = 0.5;
-                    exp2syn["tau2"] = 0.6;
-                    exp2syn["e"] = 0;
-                    cell.add_synapse({i, j}, exp2syn);
-                }
-                fm.push_back({i, j});
-                c++;
+    for (auto layer: syn_layers.map) {
+        int c = 0;
+        for (auto v: layer.second) {
+            if(layer_name == layer.first && layer_idx == c) {
+                arb::mechanism_desc exp2syn("exp2syn");
+                exp2syn["tau1"] = 0.709067133592;
+                exp2syn["tau2"] = 4.79049393295;
+                exp2syn["e"] = 0;
+                cell.add_synapse({v.segment, v.pos}, exp2syn);
             }
+            else {
+                arb::mechanism_desc exp2syn("exp2syn");
+                exp2syn["tau1"] = 0.5;
+                exp2syn["tau2"] = 0.6;
+                exp2syn["e"] = 0;
+                cell.add_synapse({v.segment, v.pos}, exp2syn);
+            }
+            std::cout << layer.first << ": " << v.segment << ", " << v.pos << std::endl;
+            c++;
         }
     }
 
@@ -312,9 +309,6 @@ arb::cable_cell granule_cell(
         segment->add_mechanism(hh);
     }
 
-    for (unsigned i =0; i < fm.size(); i++) {
-        std::cout << i << " : ("<< fm[i].first << ", " << fm[i].second <<")\n";
-    }
     return cell;
 }
 

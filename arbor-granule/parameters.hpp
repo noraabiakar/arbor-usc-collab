@@ -10,17 +10,24 @@
 std::vector<double> read_spike_times();
 template <typename T>
 struct layers {
-    std::unordered_map<std::string, T> map =
-            { {"soma_layer",    T()},
-              {"granule_layer", T()},
+    std::map<std::string, T> map =
+            { {"granule_layer", T()},
               {"inner_layer",   T()},
               {"middle_layer",  T()},
-              {"outer_layer",   T()}
+              {"outer_layer",   T()},
+              {"soma_layer",    T()}
             };
 };
+
+struct synapse_id {
+    unsigned segment;
+    double pos;
+};
+
 using double_layers = layers<std::vector<double>>;
 using unsigned_layers = layers<std::vector<unsigned>>;
 using pair_layers = layers<std::pair<double, double>>;
+using synapse_layers = layers<std::vector<synapse_id>>;
 
 struct granule_params {
     std::string morph_file;
@@ -100,7 +107,7 @@ std::vector<double> extent(const std::vector<double>& x,
     return ext;
 }
 
-std::vector<double_layers> get_synapse_positions(std::string filename, double res) {
+synapse_layers get_synapse_positions(std::string filename, double res) {
     std::ifstream f(filename);
     if (!f) throw std::runtime_error("unable to open file");
 
@@ -174,56 +181,37 @@ std::vector<double_layers> get_synapse_positions(std::string filename, double re
      }
     }
 
-    std::vector<double_layers> segment_layer_pos;
+    synapse_layers synapses;
     for (unsigned i = 0; i < segment_layer_dist.size(); i++) {
-     unsigned n = nseg[i];
-     auto branch_pos = linspace(0.5/n, 1-0.5/n, n);
-     std::vector<double> abs_diff;
+        unsigned n = nseg[i];
+        auto branch_pos = linspace(0.5/n, 1-0.5/n, n);
+        std::vector<double> abs_diff;
 
-     double_layers l;
-     for (auto layer: segment_layer_dist[i].map) {
-         for (auto v : layer.second) {
-             abs_diff = branch_pos;
-             for (auto& a: abs_diff) {
-                 a = std::abs(a - v);
-             }
-             unsigned idx = std::min_element(abs_diff.begin(), abs_diff.end() ) - abs_diff.begin();
-             l.map[layer.first].push_back(branch_pos[idx]);
-         }
+        for (auto layer: segment_layer_dist[i].map) {
+            auto prev_end_idx = synapses.map[layer.first].end() - synapses.map[layer.first].begin();
 
-         auto last = std::unique(l.map[layer.first].begin(), l.map[layer.first].end());
-         l.map[layer.first].erase(last, l.map[layer.first].end());
-     }
-     segment_layer_pos.push_back(std::move(l));
-    }
-
-    double_layers soma;
-    soma.map["soma_layer"].push_back(0.5);
-    segment_layer_pos.insert(segment_layer_pos.begin(), soma);
-
-   /* for (unsigned i = 0; i < segment_layer_pos.size(); i++) {
-        for (auto layer : segment_layer_pos[i].map) {
-        std::cout<< layer.first << std::endl;
-            for (auto j: layer.second) {
-                std::cout << "\t"<< i << " " << j << std::endl;
+            for (auto v : layer.second) {
+                abs_diff = branch_pos;
+                for (auto& a: abs_diff) {
+                    a = std::abs(a - v);
+                }
+                unsigned idx = std::min_element(abs_diff.begin(), abs_diff.end() ) - abs_diff.begin();
+                synapses.map[layer.first].push_back({i, branch_pos[idx]});
             }
+            auto last = std::unique(prev_end_idx + synapses.map[layer.first].begin(), synapses.map[layer.first].end(),
+                    [](synapse_id a, synapse_id b) { return a.segment == b.segment && a.pos == b.pos; });
+            synapses.map[layer.first].erase(last, synapses.map[layer.first].end());
         }
     }
-*/
-    return segment_layer_pos;
-}
 
-unsigned_layers get_synapse_ids(const std::vector<double_layers>& syn_pos) {
-    unsigned_layers syn_ids;
-    unsigned id = 0;
-    for (auto sp: syn_pos) {
-        for (auto layer: sp.map) {
-            for (auto v: layer.second) {
-                syn_ids.map[layer.first].push_back(id++);
-            }
+    synapses.map["soma_layer"].push_back({0, 0.5});
+
+    for (auto layer: synapses.map) {
+        for (auto v: layer.second) {
+            std::cout << layer.first << " " << v.segment << " " << v.pos << std::endl;
         }
     }
-    return syn_ids;
-}
 
+    return synapses;
+}
 

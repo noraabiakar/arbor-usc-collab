@@ -85,7 +85,7 @@ t.record(h._ref_t)
 #########################
 h.v_init = -70
 h.t = 0
-h.dt = 0.001
+h.dt = 0.025
 h.celsius = 35.0
 h("tstep = 0")
 h("period = 2")
