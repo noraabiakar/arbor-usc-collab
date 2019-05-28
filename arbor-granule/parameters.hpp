@@ -56,6 +56,7 @@ struct granule_params {
     std::string syn_layer;
     unsigned syn_id;
     double seg_res, dt, weight;
+    double ra, cm;
 
 
 };
@@ -103,6 +104,8 @@ granule_params read_params(int argc, char** argv) {
     param_from_json(p.seg_res, "seg_res", json);
     param_from_json(p.weight, "weight", json);
     param_from_json(p.morph_file, "morph_file", json);
+    param_from_json(p.ra, "ra", json);
+    param_from_json(p.cm, "cm", json);
 
     for (auto it=json.begin(); it!=json.end(); ++it) {
         std::cout << "  Warning: unused input parameter: \"" << it.key() << "\"\n";

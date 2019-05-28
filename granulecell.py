@@ -22,7 +22,6 @@ def makeLayerDict(cell):
     LayerDict['Apical']['soma'] = cell.soma
     LayerDict['Apical']['granuleCellLayer'] = cell.granuleCellLayer
     LayerDict['Apical']['innerThird'] = cell.innerThird
-    LayerDict['Apical']['innerThird'] = cell.innerThird
     LayerDict['Apical']['middleThird'] = cell.middleThird
     LayerDict['Apical']['outerThird'] = cell.outerThird
 
@@ -44,19 +43,19 @@ def makeSynGroups(cell):
     SynGroups['AMPA']['middleThird'] = []
     SynGroups['AMPA']['outerThird'] = []
 
-    # SynGroups['NMDA'] = {}
-    # SynGroups['NMDA']['soma'] = []
-    # SynGroups['NMDA']['granuleCellLayer'] = []
-    # SynGroups['NMDA']['innerThird'] = []
-    # SynGroups['NMDA']['middleThird'] = []
-    # SynGroups['NMDA']['outerThird'] = []
-    #
-    # SynGroups['GABA'] = {}
-    # SynGroups['GABA']['soma'] = []
-    # SynGroups['GABA']['granuleCellLayer'] = []
-    # SynGroups['GABA']['innerThird'] = []
-    # SynGroups['GABA']['middleThird'] = []
-    # SynGroups['GABA']['outerThird'] = []
+    SynGroups['NMDA'] = {}
+    SynGroups['NMDA']['soma'] = []
+    SynGroups['NMDA']['granuleCellLayer'] = []
+    SynGroups['NMDA']['innerThird'] = []
+    SynGroups['NMDA']['middleThird'] = []
+    SynGroups['NMDA']['outerThird'] = []
+
+    SynGroups['GABA'] = {}
+    SynGroups['GABA']['soma'] = []
+    SynGroups['GABA']['granuleCellLayer'] = []
+    SynGroups['GABA']['innerThird'] = []
+    SynGroups['GABA']['middleThird'] = []
+    SynGroups['GABA']['outerThird'] = []
 
     return SynGroups
 
@@ -143,6 +142,8 @@ def getBiophysics(cell, in_param):
         sec.gl_hh = in_param["hh_gl"]
         sec.ena = in_param["hh_ena"]
         sec.ek = in_param["hh_ek"]
+        sec.Ra = in_param["ra"]
+        sec.cm = in_param["cm"]
     #     sec.insert('ccanl')
     #     sec.catau_ccanl=10*cell.k1
     #     sec.caiinf_ccanl=5.0e-6*cell.l1

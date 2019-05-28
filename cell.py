@@ -109,7 +109,7 @@ class Cell:
             all.append(self.celltype.getSoma(self))
             for d in self.dendTypeList['Apical']:
                 all.append(d)
-            
+
             for dendType in self.layerDict:
                 for synType in self.synGroups:
                     self.addSegmentSynapse(self.layerDict[dendType],all,self.synGroups[synType],synType,in_param)
