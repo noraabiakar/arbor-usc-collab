@@ -43,19 +43,19 @@ def makeSynGroups(cell):
     SynGroups['AMPA']['middleThird'] = []
     SynGroups['AMPA']['outerThird'] = []
 
-    SynGroups['NMDA'] = {}
-    SynGroups['NMDA']['soma'] = []
-    SynGroups['NMDA']['granuleCellLayer'] = []
-    SynGroups['NMDA']['innerThird'] = []
-    SynGroups['NMDA']['middleThird'] = []
-    SynGroups['NMDA']['outerThird'] = []
-
-    SynGroups['GABA'] = {}
-    SynGroups['GABA']['soma'] = []
-    SynGroups['GABA']['granuleCellLayer'] = []
-    SynGroups['GABA']['innerThird'] = []
-    SynGroups['GABA']['middleThird'] = []
-    SynGroups['GABA']['outerThird'] = []
+    # SynGroups['NMDA'] = {}
+    # SynGroups['NMDA']['soma'] = []
+    # SynGroups['NMDA']['granuleCellLayer'] = []
+    # SynGroups['NMDA']['innerThird'] = []
+    # SynGroups['NMDA']['middleThird'] = []
+    # SynGroups['NMDA']['outerThird'] = []
+    #
+    # SynGroups['GABA'] = {}
+    # SynGroups['GABA']['soma'] = []
+    # SynGroups['GABA']['granuleCellLayer'] = []
+    # SynGroups['GABA']['innerThird'] = []
+    # SynGroups['GABA']['middleThird'] = []
+    # SynGroups['GABA']['outerThird'] = []
 
     return SynGroups
 

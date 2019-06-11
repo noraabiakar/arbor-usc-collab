@@ -88,7 +88,6 @@ public:
             glob_syn_id += layer.second.size();
         }
         glob_syn_id += params_.syn_id;
-        std::cout << glob_syn_id << std::endl;
 
         std::vector<arb::event_generator> gens;
         arb::pse_vector svec;
@@ -276,13 +275,17 @@ arb::cable_cell granule_cell(
     auto morph = arb::swc_as_morphology(arb::parse_swc_file(f));
     arb::cable_cell cell = arb::make_cable_cell(morph);
 
+    int tot_seg = 1;
     for (auto& segment: cell.segments()) {
         if (!segment->as_soma()) {
             auto length = segment->as_cable()->length();
             auto n = (unsigned) std::ceil(length / params.seg_res);
             segment->set_compartments(n);
+            tot_seg += n;
         }
     }
+
+    std::cout << "total segments: " << tot_seg << std::endl;
 
     int tot = 0;
     for (auto layer: syn_layers.map) {
@@ -294,8 +297,7 @@ arb::cable_cell granule_cell(
                 exp2syn["tau2"] = params.tau2_syn;
                 exp2syn["e"] = params.e_syn;
                 cell.add_synapse({v.segment, v.pos}, exp2syn);
-                std::cout << params.syn_layer << " " <<params.syn_id << " " << tot << std::endl;
-                std::cout << v.segment << " " << v.pos << std::endl;
+                std::cout << "selected synapse: " << v.segment << " " << v.pos << std::endl;
             }
             else {
                 arb::mechanism_desc exp2syn("exp2syn");
@@ -308,6 +310,7 @@ arb::cable_cell granule_cell(
             tot++;
         }
     }
+    std::cout << "total synapses: " << tot << std::endl;
 
     for (auto& segment: cell.segments()) {
         arb::mechanism_desc hh("hh");

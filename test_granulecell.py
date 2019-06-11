@@ -95,7 +95,7 @@ h.celsius = in_param["temp"]
 h("tstep = 0")
 h("period = 2")
 h.tstop = tstop
-h("steps_per_ms = 1000")
+#h("steps_per_ms = 1000")
 h.load_file('hoc_files/negative_init.hoc')
 
 ##################

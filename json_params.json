@@ -1,5 +1,5 @@
 {
-    "dt_arbor": 0.0025,
+    "dt_arbor": 0.01,
     "dt_neuron": 0.025,
     "temp": 35.0,
     "vinit": -70.0,
@@ -17,9 +17,9 @@
     "ra": 35.4,
     "cm": 1,
     "syn_layer": "innerThird",
-    "syn_id": 20,
-    "seg_res": 0.5,
+    "syn_id": 100,
+    "seg_res": 1,
     "weight": 1.17, 
-    "morph_file": "/home/abiakarn/git/usc_neuron/morphologies/output2_updated.swc"
+    "morph_file": "/home/abiakarn/git/usc_neuron/morphologies/output0_updated.swc"
 }
 

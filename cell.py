@@ -220,12 +220,15 @@ class Cell:
     # based on the specified segment resolution               #
     ###########################################################
     def norm_seg(self,nseg_res):
+        tot_seg = 1
         for dendType in self.dendTypeList:
             for sec in self.dendTypeList[dendType]:
                 if sec.L >= nseg_res:
                     sec.nseg = int(np.ceil(sec.L/nseg_res))
                 else:
                     sec.nseg = 1
+                tot_seg = tot_seg + sec.nseg
+        print "tot_segments = ", tot_seg
 
     ########################################################################
     # Function that assigns number of segments based on                    #
@@ -481,7 +484,6 @@ class Cell:
     # the segment lies                                                    #
     #######################################################################
     def addSegmentSynapse(self,layerDict,list,synList,synType,in_param):
-
         for layer in sorted(layerDict.keys()):
             c = 0
             for sec_choice in list:
