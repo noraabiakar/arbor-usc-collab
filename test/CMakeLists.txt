@@ -28,3 +28,6 @@ add_subdirectory(unit-modcc)
 # Microbenchmarks.
 # Builds: one executable per microbenchmark under ubench/.
 add_subdirectory(ubench)
+
+# Ad hoc testing for USC models
+add_subdirectory(usc)
