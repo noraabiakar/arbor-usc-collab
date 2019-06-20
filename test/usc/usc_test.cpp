@@ -1,7 +1,6 @@
-#include <arbor/mechcat.hpp>
+#include "../gtest.h"
 
-#include "usc_catalogue.hpp"
-
-int main() {
-    arb::mechanism_catalogue usc_cat = make_usc_catalogue();
+int main(int argc, char **argv) {
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

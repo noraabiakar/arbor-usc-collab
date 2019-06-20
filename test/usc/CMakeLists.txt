@@ -44,6 +44,7 @@ endforeach()
 set(usc_sources
     usc_catalogue.cpp
     usc_test.cpp
+    test_ccanl.cpp
 )
 
 add_executable(usc-test EXCLUDE_FROM_ALL ${usc_sources} ${usc_mech_sources})
