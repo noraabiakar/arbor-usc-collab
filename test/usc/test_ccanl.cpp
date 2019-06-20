@@ -1,3 +1,4 @@
+#include <cmath>
 #include <memory>
 
 #include <arbor/recipe.hpp>
@@ -20,12 +21,17 @@ using namespace arb;
 
 static recipe_ptr make_test_recipe() {
     // Make a single compartment cell with nca, lca, tca ions
-    // and ccanl, ccanlrev mechanisms.
+    // and ccanl, ccanlrev, lca mechanisms.
+    //
+    // We need at least one mechanism that reads a reversal potential
+    // written by ccanlrev for us to be able to check the generated
+    // value.
 
     cable_cell cell;
 
     auto soma = cell.add_soma(6.);
     soma->add_mechanism("ccanl");
+    soma->add_mechanism("lca");
 
     cell.default_parameters.reversal_potential_method["nca"] = "ccanlrev";
     cell.default_parameters.reversal_potential_method["lca"] = "ccanlrev";
@@ -34,7 +40,6 @@ static recipe_ptr make_test_recipe() {
     std::unique_ptr<cable1d_recipe> rec(new cable1d_recipe(cell));
     rec->catalogue() = make_usc_catalogue();
 
-    // (Interior concentration and reversal potentials are provided by mechanisms.)
     rec->add_ion("nca", 2, 0, 2.0/3, 0);
     rec->add_ion("lca", 2, 0, 2.0/3, 0);
     rec->add_ion("tca", 2, 0, 2.0/3, 0);
@@ -76,17 +81,19 @@ TEST(usc, ccanl) {
     fvm_cell fvcell{context};
     fvcell.initialize({0}, *rec.get(), cell_to_intdom, targets, probe_map);
 
-    // Expect initial concentrations to be set to values from ccanl,
-    // reversal potentials from ccanlrev.
-
     auto& state = *(fvcell.*private_state_ptr).get();
 
     auto nca_ion = state.ion_data.at("nca");
     auto lca_ion = state.ion_data.at("lca");
     auto tca_ion = state.ion_data.at("tca");
 
-    double expected_xcai = 50.e-6/3;
-    EXPECT_DOUBLE_EQ(expected_xcai, nca_ion.Xi_[0]);
-    EXPECT_DOUBLE_EQ(expected_xcai, lca_ion.Xi_[0]);
-    EXPECT_DOUBLE_EQ(expected_xcai, tca_ion.Xi_[0]);
+    double expected_cai = 50.e-6/3;
+    EXPECT_DOUBLE_EQ(expected_cai, nca_ion.Xi_[0]);
+    EXPECT_DOUBLE_EQ(expected_cai, lca_ion.Xi_[0]);
+    EXPECT_DOUBLE_EQ(expected_cai, tca_ion.Xi_[0]);
+
+    double expected_erev = 1000*8.3134*(6.3+273.15)/(2*96520)*std::log(2.0/50.e-6);
+    EXPECT_DOUBLE_EQ(expected_erev, nca_ion.eX_[0]);
+    EXPECT_DOUBLE_EQ(expected_erev, lca_ion.eX_[0]);
+    EXPECT_DOUBLE_EQ(expected_erev, tca_ion.eX_[0]);
 }
