@@ -60,7 +60,7 @@ DERIVATIVE integrate {
     ncai' = -(inca)/depth/96520 * (1e7) + (caiinf/3 - ncai)/catau
     lcai' = -(ilca)/depth/96520 * (1e7) + (caiinf/3 - lcai)/catau
     tcai' = -(itca)/depth/96520 * (1e7) + (caiinf/3 - tcai)/catau
-    cai   = ncai : + lcai + tcai
+    cai   = ncai + lcai + tcai
     eca   = ktf(celsius)* log(cao/cai)
     enca  = eca
     elca  = eca
