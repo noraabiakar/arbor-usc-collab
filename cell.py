@@ -292,7 +292,6 @@ class Cell:
             dendList = self.dendTypeList[dendType]
             # Calculate which segments on which sections belong to which layer
             self.organizeSec(dendList,self.layerDict[dendType],self.bounds[dendType])
-
             # Dictionary of dictionary of tuples that will be used to give
             # locations to synapses
             for i in range(len(dendList)):
