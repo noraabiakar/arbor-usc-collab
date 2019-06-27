@@ -145,15 +145,15 @@ def getBiophysics(cell, in_param):
 
         sec.insert('borgka')
         sec.gkabar_borgka  = 0.001 * in_param["gkabar_borgka"]
-    #
-    #     sec.insert('nca')
-    #     sec.gncabar_nca    = 0.001 * in_param["gncabar_nca"]
-    #
-    #     sec.insert('lca')
-    #     sec.glcabar_lca    = 0.005 * in_param["glcabar_lca"]
-    #
-    #     sec.insert('cat')
-    #     sec.gcatbar_cat = 0.000037 * in_param["gcatbar_cat"]
+
+        sec.insert('nca')
+        sec.gncabar_nca    = 0.001 * in_param["gncabar_nca"]
+
+        sec.insert('lca')
+        sec.glcabar_lca    = 0.005 * in_param["glcabar_lca"]
+
+        sec.insert('cat')
+        sec.gcatbar_cat = 0.000037 * in_param["gcatbar_cat"]
     #
     #     sec.insert('gskch')
     #     sec.gskbar_gskch   = 0.001 * in_param["gskbar_gskch"]
@@ -230,13 +230,13 @@ def getBiophysics(cell, in_param):
     #         sec.cm             = 1.6      * in_param["cm_mult"]
 
     for sec in cell.c.somatic:
-    #     sec.cao       = in_param["cao"]
+        sec.cao       = in_param["cao"]
         sec.ek        = in_param["ek"]
         sec.enat      = in_param["enat"]
         sec.ekf       = in_param["ekf"]
         sec.eks       = in_param["eks"]
-    #     sec.elca      = in_param["elca"]
-    #     sec.etca      = in_param["etca"]
+        sec.elca      = in_param["elca"]
+        sec.etca      = in_param["etca"]
     #     sec.esk       = in_param["esk"]
     #     sec.el_ichan2 = in_param["el_ichan2"]
 
