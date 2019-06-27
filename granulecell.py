@@ -120,7 +120,7 @@ def getBiophysics(cell, in_param):
     #cell.c.soma[0].L *= 2
 
     # Now, insert the proper biophysics for each section.
-    # for sec in cell.c.all:
+    for sec in cell.c.all:
         # sec.insert('hh') #**
         # sec.gnabar_hh= in_param["hh_gnabar"] #**
         # sec.gkbar_hh = in_param["hh_gkbar"] #**
@@ -133,7 +133,7 @@ def getBiophysics(cell, in_param):
         # sec.insert('ccanl')
         # sec.catau_ccanl=10*cell.k1
         # sec.caiinf_ccanl=5.0e-6*cell.l1
-        # sec.Ra = 410 * in_param["ra_mult"]
+        sec.Ra = 410 * in_param["ra_mult"]
 
     for sec in cell.c.somatic:
         sec.insert('ichan2')
@@ -142,9 +142,9 @@ def getBiophysics(cell, in_param):
         sec.gksbar_ichan2  = 0.006 * in_param["gksbar_ichan2"]
         sec.gl_ichan2    = 0.00004 * in_param["gl_ichan2"]
         sec.el_ichan2     =          in_param["el_ichan2"]
-    #
-    #     sec.insert('borgka')
-    #     sec.gkabar_borgka  = 0.001 * in_param["gkabar_borgka"]
+
+        sec.insert('borgka')
+        sec.gkabar_borgka  = 0.001 * in_param["gkabar_borgka"]
     #
     #     sec.insert('nca')
     #     sec.gncabar_nca    = 0.001 * in_param["gncabar_nca"]
@@ -231,7 +231,7 @@ def getBiophysics(cell, in_param):
 
     for sec in cell.c.somatic:
     #     sec.cao       = in_param["cao"]
-    #     sec.ek        = in_param["ek"]
+        sec.ek        = in_param["ek"]
         sec.enat      = in_param["enat"]
         sec.ekf       = in_param["ekf"]
         sec.eks       = in_param["eks"]
