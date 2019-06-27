@@ -9,26 +9,6 @@
 #include <common/json_params.hpp>
 
 std::vector<double> read_spike_times();
-template <typename T>
-struct layers {
-    std::map<std::string, T> map =
-            { {"granuleCellLayer", T()},
-              {"innerThird",   T()},
-              {"middleThird",  T()},
-              {"outerThird",   T()},
-              {"soma",    T()}
-            };
-};
-
-struct synapse_id {
-    unsigned segment;
-    double pos;
-};
-
-using double_layers = layers<std::vector<double>>;
-using unsigned_layers = layers<std::vector<unsigned>>;
-using pair_layers = layers<std::pair<double, double>>;
-using synapse_layers = layers<std::vector<synapse_id>>;
 
 struct granule_params {
     std::string morph_file;
@@ -52,11 +32,20 @@ struct granule_params {
     double temp, v_init;
     double tau1_reg, tau2_reg, e_reg;
     double tau1_syn, tau2_syn, e_syn;
+
     double hh_gnabar, hh_gkbar, hh_gl, hh_ena, hh_ek;
+
+    double gnatbar_ichan2, gkfbar_ichan2, gksbar_ichan2, gkabar_borgka, gncabar_nca, glcabar_lca;
+    double gcatbar_cat, gskbar_gskch, gkbar_cagk, gl_ichan2, catau_ccanl, caiinf_ccanl;
+
+    double enat, ekf, eks, ek, elca, etca, esk, el_ichan2, cao;
+
+    double ra_mult, cm_mult;
+    double ra, cm;
+
     std::string syn_layer;
     unsigned syn_id;
     double seg_res, dt, weight;
-    double ra, cm;
 
 
 };
@@ -94,18 +83,47 @@ granule_params read_params(int argc, char** argv) {
     param_from_json(p.tau1_syn, "tau1_syn", json);
     param_from_json(p.tau2_syn, "tau2_syn", json);
     param_from_json(p.e_syn, "e_syn", json);
+
     param_from_json(p.hh_gnabar, "hh_gnabar", json);
     param_from_json(p.hh_gkbar, "hh_gkbar", json);
     param_from_json(p.hh_gl, "hh_gl", json);
     param_from_json(p.hh_ena, "hh_ena", json);
     param_from_json(p.hh_ek, "hh_ek", json);
+
+    param_from_json(p.gnatbar_ichan2, "gnatbar_ichan2", json);
+    param_from_json(p.gkfbar_ichan2, "gkfbar_ichan2", json);
+    param_from_json(p.gksbar_ichan2, "gksbar_ichan2", json);
+    param_from_json(p.gkabar_borgka, "gkabar_borgka", json);
+    param_from_json(p.gncabar_nca, "gncabar_nca", json);
+    param_from_json(p.glcabar_lca, "glcabar_lca", json);
+    param_from_json(p.gcatbar_cat, "gcatbar_cat", json);
+    param_from_json(p.gskbar_gskch, "gskbar_gskch", json);
+    param_from_json(p.gkbar_cagk, "gkbar_cagk", json);
+    param_from_json(p.gl_ichan2, "gl_ichan2", json);
+    param_from_json(p.catau_ccanl, "catau_ccanl", json);
+    param_from_json(p.caiinf_ccanl, "caiinf_ccanl", json);
+
+    param_from_json(p.ra, "ra", json);
+    param_from_json(p.cm, "cm", json);
+    param_from_json(p.ra_mult, "ra_mult", json);
+    param_from_json(p.cm_mult, "cm_mult", json);
+
+    param_from_json(p.enat, "enat", json);
+    param_from_json(p.ekf, "ekf", json);
+    param_from_json(p.eks, "eks", json);
+    param_from_json(p.ek, "ek", json);
+    param_from_json(p.elca, "elca", json);
+    param_from_json(p.etca, "etca", json);
+    param_from_json(p.esk, "esk", json);
+    param_from_json(p.el_ichan2, "el_ichan2", json);
+    param_from_json(p.cao, "cao", json);
+
     param_from_json(p.syn_layer, "syn_layer", json);
     param_from_json(p.syn_id, "syn_id", json);
     param_from_json(p.seg_res, "seg_res", json);
     param_from_json(p.weight, "weight", json);
     param_from_json(p.morph_file, "morph_file", json);
-    param_from_json(p.ra, "ra", json);
-    param_from_json(p.cm, "cm", json);
+
 
     for (auto it=json.begin(); it!=json.end(); ++it) {
         std::cout << "  Warning: unused input parameter: \"" << it.key() << "\"\n";
@@ -115,6 +133,34 @@ granule_params read_params(int argc, char** argv) {
     return p;
 
 }
+
+/*---------------------------------------------------------------------------------------*/
+
+template <typename T>
+struct layers {
+    std::map<std::string, T> map =
+            { {"granuleCellLayer", T()},
+              {"innerThird",   T()},
+              {"middleThird",  T()},
+              {"outerThird",   T()},
+              {"soma",    T()}
+            };
+};
+
+struct synapse_id {
+    unsigned segment;
+    double pos;
+};
+
+using double_layers = layers<std::vector<double>>;
+using unsigned_layers = layers<std::vector<unsigned>>;
+using pair_layers = layers<std::pair<double, double>>;
+using synapse_layers = layers<std::vector<synapse_id>>;
+
+struct cell_layers {
+    synapse_layers synapses;
+    unsigned_layers segments;
+};
 
 std::vector<double> linspace(double a, double b, unsigned num_pts) {
 
@@ -166,7 +212,7 @@ std::vector<double> extent(const std::vector<double>& x,
     return ext;
 }
 
-synapse_layers get_synapse_positions(std::string filename, double res) {
+cell_layers get_layer_info(std::string filename, double res) {
     std::ifstream f(filename);
     if (!f) throw std::runtime_error("unable to open file");
 
@@ -198,6 +244,9 @@ synapse_layers get_synapse_positions(std::string filename, double res) {
     layer_extents.map["middleThird"] =  {0.3*max_extent,0.6*max_extent};
     layer_extents.map["outerThird"] = {0.6*max_extent,max_extent};
 
+    cell_layers ret;
+
+    unsigned seg_id = 0;
     for (auto& seg: cell.segments()) {
         if (!seg->is_soma()) {
             std::vector<double> x_interp, y_interp, z_interp;
@@ -233,21 +282,27 @@ synapse_layers get_synapse_positions(std::string filename, double res) {
                 for (auto e: layer_extents.map) {
                     if (ext[i] >= e.second.first && ext[i] < e.second.second) {
                         l.map[e.first].push_back(norm[i]);
+                        ret.segments.map[e.first].push_back(seg_id);
                     }
                 }
             }
             segment_layer_dist.push_back(std::move(l));
         }
+        seg_id++;
+    }
+    for (auto s: ret.segments.map) {
+        std::sort(s.second.begin(), s.second.end());
+        auto last = std::unique(s.second.begin(), s.second.end());
+        s.second.erase(last, s.second.end());
     }
 
-    synapse_layers synapses;
     for (unsigned i = 0; i < segment_layer_dist.size(); i++) {
         unsigned n = nseg[i];
         auto branch_pos = linspace(0.5/n, 1-0.5/n, n);
         std::vector<double> abs_diff;
 
         for (auto layer: segment_layer_dist[i].map) {
-            auto prev_end_idx = synapses.map[layer.first].end() - synapses.map[layer.first].begin();
+            auto prev_end_idx = ret.synapses.map[layer.first].end() - ret.synapses.map[layer.first].begin();
 
             for (auto v : layer.second) {
                 abs_diff = branch_pos;
@@ -255,22 +310,16 @@ synapse_layers get_synapse_positions(std::string filename, double res) {
                     a = std::abs(a - v);
                 }
                 unsigned idx = std::min_element(abs_diff.begin(), abs_diff.end() ) - abs_diff.begin();
-                synapses.map[layer.first].push_back({i+1, branch_pos[idx]});
+                ret.synapses.map[layer.first].push_back({i+1, branch_pos[idx]});
             }
-            auto last = std::unique(prev_end_idx + synapses.map[layer.first].begin(), synapses.map[layer.first].end(),
+            auto last = std::unique(prev_end_idx + ret.synapses.map[layer.first].begin(), ret.synapses.map[layer.first].end(),
                     [](synapse_id a, synapse_id b) { return a.segment == b.segment && a.pos == b.pos; });
-            synapses.map[layer.first].erase(last, synapses.map[layer.first].end());
+            ret.synapses.map[layer.first].erase(last, ret.synapses.map[layer.first].end());
         }
     }
 
-    synapses.map["soma"].push_back({0, 0.5});
+    ret.synapses.map["soma"].push_back({0, 0.5});
 
-    /*for (auto layer: synapses.map) {
-        for (auto v: layer.second) {
-            std::cout << layer.first << " " << v.segment << " " << v.pos << std::endl;
-        }
-    }*/
-
-    return synapses;
+    return ret;
 }
 
