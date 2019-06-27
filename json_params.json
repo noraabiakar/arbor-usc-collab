@@ -1,5 +1,5 @@
 {
-    "dt_arbor": 0.001,
+    "dt_arbor": 0.01,
     "dt_neuron": 0.01,
     "temp": 35.0,
     "vinit": -70.0,
