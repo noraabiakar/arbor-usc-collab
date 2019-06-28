@@ -64,8 +64,8 @@ public:
         cell_gprop_.default_parameters.temperature_K = params_.temp + 273.15;
         cell_gprop_.default_parameters.init_membrane_potential = params_.v_init;
 
-//        cell_gprop_.default_parameters.ion_data["k"].init_reversal_potential = params_.ek;
-//        cell_gprop_.default_parameters.ion_data["ca"].init_ext_concentration = params_.cao;
+        cell_gprop_.default_parameters.ion_data["k"].init_reversal_potential = params_.ek;
+        cell_gprop_.default_parameters.ion_data["ca"].init_ext_concentration = params_.cao;
     }
 
     cell_size_type num_cells() const override {
@@ -185,10 +185,10 @@ int main(int argc, char** argv) {
 
         // Create an instance of our recipe.
         granule_recipe recipe(params, layer_info);
-//        recipe.add_ion("nca", 2, 1.0, 1.0, 0);
-//        recipe.add_ion("lca", 2, 1.0, 1.0, params.elca);
-//        recipe.add_ion("tca", 2, 1.0, 1.0, params.etca);
-//        recipe.add_ion("sk",  1, 1.0, 1.0, params.esk);
+        recipe.add_ion("nca", 2, 1.0, 1.0, 0);
+        recipe.add_ion("lca", 2, 1.0, 1.0, params.elca);
+        recipe.add_ion("tca", 2, 1.0, 1.0, params.etca);
+        recipe.add_ion("sk",  1, 1.0, 1.0, params.esk);
         recipe.add_ion("nat", 1, 1.0, 1.0, params.enat);
         recipe.add_ion("kf",  1, 1.0, 1.0, params.ekf);
         recipe.add_ion("ks",  1, 1.0, 1.0, params.eks);
@@ -336,9 +336,6 @@ arb::cable_cell granule_cell(
 
     unsigned seg_id = 0;
     for (auto& segment: cell.segments()) {
-        if (!segment->as_soma()) {
-            std::cout << seg_id << " " << segment->as_cable()->length() << std::endl;
-        }
         /*arb::mechanism_desc hh("hh");
         hh["gnabar"] = params.hh_gnabar;
         hh["gkbar"] = params.hh_gkbar;
@@ -357,7 +354,7 @@ arb::cable_cell granule_cell(
             arb::mechanism_desc lca("lca");
             arb::mechanism_desc cat("cat");
             arb::mechanism_desc gskch("gskch");
-//            arb::mechanism_desc cagk("cagk");
+            arb::mechanism_desc cagk("cagk");
 
             ichan2["gnatbar"] = 0.120    * params.gnatbar_ichan2;
             ichan2["gkfbar"]  = 0.016    * params.gkfbar_ichan2;
@@ -369,21 +366,20 @@ arb::cable_cell granule_cell(
             lca["glcabar"]    = 0.005    * params.glcabar_lca;
             cat["gcatbar"]    = 0.000037 * params.gcatbar_cat;
             gskch["gskbar"]   = 0.001    * params.gskbar_gskch;
-//            cagk["gkbar"]     = 0.0006   * params.gkbar_cagk;
+            cagk["gkbar"]     = 0.0006   * params.gkbar_cagk;
 
             segment->parameters.membrane_capacitance = 1.0 * params.cm_mult/100;
 
             segment->add_mechanism(ichan2);
-//            segment->add_mechanism(borgka);
-//            segment->add_mechanism(nca);
-//            segment->add_mechanism(lca);
-//            segment->add_mechanism(cat);
-//            segment->add_mechanism(gskch);
-//            segment->add_mechanism(cagk);
+            segment->add_mechanism(borgka);
+            segment->add_mechanism(nca);
+            segment->add_mechanism(lca);
+            segment->add_mechanism(cat);
+            segment->add_mechanism(gskch);
+            segment->add_mechanism(cagk);
 
-        } /*else {
+        } else {
             arb::mechanism_desc ichan2("ichan2");
-            arb::mechanism_desc borgka("borgka");
             arb::mechanism_desc nca("nca");
             arb::mechanism_desc lca("lca");
             arb::mechanism_desc cat("cat");
@@ -392,6 +388,7 @@ arb::cable_cell granule_cell(
 
             if(std::binary_search(layer_info.segments.map["granuleCellLayer"].begin(),
                                   layer_info.segments.map["granuleCellLayer"].end(), seg_id)) {
+                std::cout << seg_id << std::endl;
                 ichan2["gnatbar"] = 0.018   * params.gnatbar_ichan2;
                 ichan2["gkfbar"]  = 0.004;
                 ichan2["gksbar"]  = 0.006;
@@ -403,7 +400,13 @@ arb::cable_cell granule_cell(
                 gskch["gskbar"]   = 0.0004;
                 cagk["gkbar"]     = 0.0006  * params.gkbar_cagk;
 
-                segment->parameters.membrane_capacitance = 1.0 * params.cm_mult;
+                segment->parameters.membrane_capacitance = 1.0 * params.cm_mult/100;
+                segment->add_mechanism(ichan2);
+                segment->add_mechanism(nca);
+                segment->add_mechanism(lca);
+                segment->add_mechanism(cat);
+                segment->add_mechanism(gskch);
+                segment->add_mechanism(cagk);
             }
 
             if(std::binary_search(layer_info.segments.map["innerThird"].begin(),
@@ -419,7 +422,13 @@ arb::cable_cell granule_cell(
                 gskch["gskbar"]   = 0.0002;
                 cagk["gkbar"]     = 0.001    * params.gkbar_cagk;
 
-                segment->parameters.membrane_capacitance = 1.6 * params.cm_mult;
+                segment->parameters.membrane_capacitance = 1.6 * params.cm_mult/100;
+                segment->add_mechanism(ichan2);
+                segment->add_mechanism(nca);
+                segment->add_mechanism(lca);
+                segment->add_mechanism(cat);
+                segment->add_mechanism(gskch);
+                segment->add_mechanism(cagk);
             }
 
             if(std::binary_search(layer_info.segments.map["middleThird"].begin(),
@@ -435,7 +444,13 @@ arb::cable_cell granule_cell(
                 gskch["gskbar"]   = 0.0;
                 cagk["gkbar"]     = 0.0024   * params.gkbar_cagk;
 
-                segment->parameters.membrane_capacitance = 1.6 * params.cm_mult;
+                segment->parameters.membrane_capacitance = 1.6 * params.cm_mult/100;
+                segment->add_mechanism(ichan2);
+                segment->add_mechanism(nca);
+                segment->add_mechanism(lca);
+                segment->add_mechanism(cat);
+                segment->add_mechanism(gskch);
+                segment->add_mechanism(cagk);
             }
 
             if(std::binary_search(layer_info.segments.map["outerThird"].begin(),
@@ -451,19 +466,23 @@ arb::cable_cell granule_cell(
                 gskch["gskbar"]   = 0.0;
                 cagk["gkbar"]     = 0.0024   * params.gkbar_cagk;
 
-                segment->parameters.membrane_capacitance = 1.6 * params.cm_mult;
+                segment->parameters.membrane_capacitance = 1.6 * params.cm_mult/100;
+                segment->add_mechanism(ichan2);
+                segment->add_mechanism(nca);
+                segment->add_mechanism(lca);
+                segment->add_mechanism(cat);
+                segment->add_mechanism(gskch);
+                segment->add_mechanism(cagk);
             }
 
-            segment->add_mechanism(ichan2);
-            segment->add_mechanism(borgka);
-            segment->add_mechanism(nca);
-            segment->add_mechanism(lca);
-            segment->add_mechanism(cat);
-            segment->add_mechanism(gskch);
-            segment->add_mechanism(cagk);
-
-            seg_id++;
-        }*/
+//            segment->add_mechanism(ichan2);
+//            segment->add_mechanism(nca);
+//            segment->add_mechanism(lca);
+//            segment->add_mechanism(cat);
+//            segment->add_mechanism(gskch);
+//            segment->add_mechanism(cagk);
+        }
+        seg_id++;
     }
 
     return cell;

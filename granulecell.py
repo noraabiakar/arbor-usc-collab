@@ -143,25 +143,34 @@ def getBiophysics(cell, in_param):
         sec.gl_ichan2    = 0.00004 * in_param["gl_ichan2"]
         sec.el_ichan2     =          in_param["el_ichan2"]
 
-        # sec.insert('borgka')
-        # sec.gkabar_borgka  = 0.001 * in_param["gkabar_borgka"]
-        #
-        # sec.insert('nca')
-        # sec.gncabar_nca    = 0.001 * in_param["gncabar_nca"]
-        #
-        # sec.insert('lca')
-        # sec.glcabar_lca    = 0.005 * in_param["glcabar_lca"]
-        #
-        # sec.insert('cat')
-        # sec.gcatbar_cat = 0.000037 * in_param["gcatbar_cat"]
-        #
-        # sec.insert('gskch')
-        # sec.gskbar_gskch   = 0.001 * in_param["gskbar_gskch"]
+        sec.insert('borgka')
+        sec.gkabar_borgka  = 0.001 * in_param["gkabar_borgka"]
 
-    #     sec.insert('cagk')
-    #     sec.gkbar_cagk    = 0.0006 * in_param["gkbar_cagk"]
-    #
+        sec.insert('nca')
+        sec.gncabar_nca    = 0.001 * in_param["gncabar_nca"]
+
+        sec.insert('lca')
+        sec.glcabar_lca    = 0.005 * in_param["glcabar_lca"]
+
+        sec.insert('cat')
+        sec.gcatbar_cat = 0.000037 * in_param["gcatbar_cat"]
+
+        sec.insert('gskch')
+        sec.gskbar_gskch   = 0.001 * in_param["gskbar_gskch"]
+
+        sec.insert('cagk')
+        sec.gkbar_cagk    = 0.0006 * in_param["gkbar_cagk"]
+
         sec.cm               = 1.0 * in_param["cm_mult"]
+
+        sec.cao       = in_param["cao"]
+        sec.ek        = in_param["ek"]
+        sec.enat      = in_param["enat"]
+        sec.ekf       = in_param["ekf"]
+        sec.eks       = in_param["eks"]
+        sec.elca      = in_param["elca"]
+        sec.etca      = in_param["etca"]
+        sec.esk       = in_param["esk"]
 
     # for sec in cell.c.dend:
     #     sec.insert('ichan2')
@@ -170,74 +179,139 @@ def getBiophysics(cell, in_param):
     #     sec.insert('cat')
     #     sec.insert('gskch')
     #     sec.insert('cagk')
-    #
-    # for sec in cell.granuleCellLayer:
-    #     if len(cell.granuleCellLayer[sec]) > 0:
-    #         #for norm_dist in cell.granuleCellLayer[sec]:
-    #         sec.gnatbar_ichan2 = 0.018   * in_param["gnatbar_ichan2"]
-    #         sec.gkfbar_ichan2  = 0.004
-    #         sec.gksbar_ichan2  = 0.006
-    #         sec.gl_ichan2      = 0.00004 * in_param["gl_ichan2"]
-    #         sec.gncabar_nca    = 0.003   * in_param["gncabar_nca"]
-    #         sec.glcabar_lca    = 0.0075
-    #         sec.gcatbar_cat    = 0.000075
-    #         sec.gskbar_gskch   = 0.0004
-    #         sec.gkbar_cagk     = 0.0006  * in_param["gkbar_cagk"]
-    #         sec.cm             = 1.0     * in_param["cm_mult"]
-    #
-    # for sec in cell.innerThird:
-    #     if len(cell.innerThird[sec]) > 0:
-    #         # for norm_dist in cell.innerThird[sec]:
-    #         sec.gnatbar_ichan2 = 0.013    * in_param["gnatbar_ichan2"]
-    #         sec.gkfbar_ichan2  = 0.004
-    #         sec.gksbar_ichan2  = 0.006
-    #         sec.gl_ichan2      = 0.000063 * in_param["gl_ichan2"]
-    #         sec.gncabar_nca    = 0.001    * in_param["gncabar_nca"]
-    #         sec.glcabar_lca    = 0.0075
-    #         sec.gcatbar_cat    = 0.00025
-    #         sec.gskbar_gskch   = 0.0002
-    #         sec.gkbar_cagk     = 0.001    * in_param["gkbar_cagk"]
-    #         sec.cm             = 1.6      * in_param["cm_mult"]
-    #
-    # for sec in cell.middleThird:
-    #     if len(cell.middleThird[sec]) > 0:
-    #         # for norm_dist in cell.middleThird[sec]:
-    #         sec.gnatbar_ichan2 = 0.008    * in_param["gnatbar_ichan2"]
-    #         sec.gkfbar_ichan2  = 0.001
-    #         sec.gksbar_ichan2  = 0.006
-    #         sec.gl_ichan2      = 0.000063 * in_param["gl_ichan2"]
-    #         sec.gncabar_nca    = 0.001    * in_param["gncabar_nca"]
-    #         sec.glcabar_lca    = 0.0005
-    #         sec.gcatbar_cat    = 0.0005
-    #         sec.gskbar_gskch   = 0.0
-    #         sec.gkbar_cagk     = 0.0024   * in_param["gkbar_cagk"]
-    #         sec.cm             = 1.6      * in_param["cm_mult"]
-    #
-    #
-    # for sec in cell.outerThird:
-    #     if len(cell.outerThird[sec]) > 0:
-    #         # for norm_dist in cell.outerThird[sec]:
-    #         sec.gnatbar_ichan2 = 0.0      * in_param["gnatbar_ichan2"]
-    #         sec.gkfbar_ichan2  = 0.001
-    #         sec.gksbar_ichan2  = 0.008
-    #         sec.gl_ichan2      = 0.000063 * in_param["gl_ichan2"]
-    #         sec.gncabar_nca    = 0.001    * in_param["gncabar_nca"]
-    #         sec.glcabar_lca    = 0.0
-    #         sec.gcatbar_cat    = 0.001
-    #         sec.gskbar_gskch   = 0.0
-    #         sec.gkbar_cagk     = 0.0024   * in_param["gkbar_cagk"]
-    #         sec.cm             = 1.6      * in_param["cm_mult"]
 
-    for sec in cell.c.somatic:
-        # sec.cao       = in_param["cao"]
-        # sec.ek        = in_param["ek"]
-        sec.enat      = in_param["enat"]
-        sec.ekf       = in_param["ekf"]
-        sec.eks       = in_param["eks"]
-        # sec.elca      = in_param["elca"]
-        # sec.etca      = in_param["etca"]
-        # sec.esk       = in_param["esk"]
-    #     sec.el_ichan2 = in_param["el_ichan2"]
+    for sec in cell.granuleCellLayer:
+        if len(cell.granuleCellLayer[sec]) > 0:
+            sec.insert('ichan2')
+            sec.insert('nca')
+            sec.insert('lca')
+            sec.insert('cat')
+            sec.insert('gskch')
+            sec.insert('cagk')
+
+            #for norm_dist in cell.granuleCellLayer[sec]:
+            sec.gnatbar_ichan2 = 0.018   * in_param["gnatbar_ichan2"]
+            sec.gkfbar_ichan2  = 0.004
+            sec.gksbar_ichan2  = 0.006
+            sec.gl_ichan2      = 0.00004 * in_param["gl_ichan2"]
+            sec.el_ichan2      =           in_param["el_ichan2"]
+            sec.gncabar_nca    = 0.003   * in_param["gncabar_nca"]
+            sec.glcabar_lca    = 0.0075
+            sec.gcatbar_cat    = 0.000075
+            sec.gskbar_gskch   = 0.0004
+            sec.gkbar_cagk     = 0.0006  * in_param["gkbar_cagk"]
+            sec.cm             = 1.0     * in_param["cm_mult"]
+
+            sec.cao       = in_param["cao"]
+            sec.enat      = in_param["enat"]
+            sec.ekf       = in_param["ekf"]
+            sec.eks       = in_param["eks"]
+            sec.elca      = in_param["elca"]
+            sec.etca      = in_param["etca"]
+            sec.esk       = in_param["esk"]
+
+
+    for sec in cell.innerThird:
+        if len(cell.innerThird[sec]) > 0:
+            sec.insert('ichan2')
+            sec.insert('nca')
+            sec.insert('lca')
+            sec.insert('cat')
+            sec.insert('gskch')
+            sec.insert('cagk')
+
+            # for norm_dist in cell.innerThird[sec]:
+            sec.gnatbar_ichan2 = 0.013    * in_param["gnatbar_ichan2"]
+            sec.gkfbar_ichan2  = 0.004
+            sec.gksbar_ichan2  = 0.006
+            sec.gl_ichan2      = 0.000063 * in_param["gl_ichan2"]
+            sec.el_ichan2      =            in_param["el_ichan2"]
+            sec.gncabar_nca    = 0.001    * in_param["gncabar_nca"]
+            sec.glcabar_lca    = 0.0075
+            sec.gcatbar_cat    = 0.00025
+            sec.gskbar_gskch   = 0.0002
+            sec.gkbar_cagk     = 0.001    * in_param["gkbar_cagk"]
+            sec.cm             = 1.6      * in_param["cm_mult"]
+
+            sec.cao       = in_param["cao"]
+            sec.enat      = in_param["enat"]
+            sec.ekf       = in_param["ekf"]
+            sec.eks       = in_param["eks"]
+            sec.elca      = in_param["elca"]
+            sec.etca      = in_param["etca"]
+            sec.esk       = in_param["esk"]
+
+
+    for sec in cell.middleThird:
+        if len(cell.middleThird[sec]) > 0:
+            sec.insert('ichan2')
+            sec.insert('nca')
+            sec.insert('lca')
+            sec.insert('cat')
+            sec.insert('gskch')
+            sec.insert('cagk')
+
+            # for norm_dist in cell.middleThird[sec]:
+            sec.gnatbar_ichan2 = 0.008    * in_param["gnatbar_ichan2"]
+            sec.gkfbar_ichan2  = 0.001
+            sec.gksbar_ichan2  = 0.006
+            sec.gl_ichan2      = 0.000063 * in_param["gl_ichan2"]
+            sec.el_ichan2      =            in_param["el_ichan2"]
+            sec.gncabar_nca    = 0.001    * in_param["gncabar_nca"]
+            sec.glcabar_lca    = 0.0005
+            sec.gcatbar_cat    = 0.0005
+            sec.gskbar_gskch   = 0.0
+            sec.gkbar_cagk     = 0.0024   * in_param["gkbar_cagk"]
+            sec.cm             = 1.6      * in_param["cm_mult"]
+
+            sec.cao       = in_param["cao"]
+            sec.enat      = in_param["enat"]
+            sec.ekf       = in_param["ekf"]
+            sec.eks       = in_param["eks"]
+            sec.elca      = in_param["elca"]
+            sec.etca      = in_param["etca"]
+            sec.esk       = in_param["esk"]
+
+
+    for sec in cell.outerThird:
+        if len(cell.outerThird[sec]) > 0:
+            sec.insert('ichan2')
+            sec.insert('nca')
+            sec.insert('lca')
+            sec.insert('cat')
+            sec.insert('gskch')
+            sec.insert('cagk')
+
+            # for norm_dist in cell.outerThird[sec]:
+            sec.gnatbar_ichan2 = 0.0      * in_param["gnatbar_ichan2"]
+            sec.gkfbar_ichan2  = 0.001
+            sec.gksbar_ichan2  = 0.008
+            sec.gl_ichan2      = 0.000063 * in_param["gl_ichan2"]
+            sec.el_ichan2      =            in_param["el_ichan2"]
+            sec.gncabar_nca    = 0.001    * in_param["gncabar_nca"]
+            sec.glcabar_lca    = 0.0
+            sec.gcatbar_cat    = 0.001
+            sec.gskbar_gskch   = 0.0
+            sec.gkbar_cagk     = 0.0024   * in_param["gkbar_cagk"]
+            sec.cm             = 1.6      * in_param["cm_mult"]
+
+            sec.cao       = in_param["cao"]
+            sec.enat      = in_param["enat"]
+            sec.ekf       = in_param["ekf"]
+            sec.eks       = in_param["eks"]
+            sec.elca      = in_param["elca"]
+            sec.etca      = in_param["etca"]
+            sec.esk       = in_param["esk"]
+
+    # for sec in cell.c.all:
+    #     sec.cao       = in_param["cao"]
+    #     sec.ek        = in_param["ek"]
+    #     sec.enat      = in_param["enat"]
+    #     sec.ekf       = in_param["ekf"]
+    #     sec.eks       = in_param["eks"]
+    #     sec.elca      = in_param["elca"]
+    #     sec.etca      = in_param["etca"]
+    #     sec.esk       = in_param["esk"]
 
 # Function to specify the biophysics of the reduced cell model
 def getReducedBiophysics(cell):
