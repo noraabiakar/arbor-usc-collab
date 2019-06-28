@@ -223,6 +223,7 @@ class Cell:
         tot_seg = 1
         for dendType in self.dendTypeList:
             for sec in self.dendTypeList[dendType]:
+                print sec.L
                 if sec.L >= nseg_res:
                     sec.nseg = int(np.ceil(sec.L/nseg_res))
                 else:
@@ -483,6 +484,7 @@ class Cell:
     # the segment lies                                                    #
     #######################################################################
     def addSegmentSynapse(self,layerDict,list,synList,synType,in_param):
+        s = 0
         for layer in sorted(layerDict.keys()):
             c = 0
             for sec_choice in list:
@@ -532,6 +534,8 @@ class Cell:
                             synList[layer].append(syn)
                     else:
                         synList[layer].append(syn)
+            s = s + c
+        print "total_synapses = ", s
 
     '''###########################################
     # 5. Code to save out data from each segment #

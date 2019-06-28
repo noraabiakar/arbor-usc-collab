@@ -143,26 +143,25 @@ def getBiophysics(cell, in_param):
         sec.gl_ichan2    = 0.00004 * in_param["gl_ichan2"]
         sec.el_ichan2     =          in_param["el_ichan2"]
 
-        sec.insert('borgka')
-        sec.gkabar_borgka  = 0.001 * in_param["gkabar_borgka"]
+        # sec.insert('borgka')
+        # sec.gkabar_borgka  = 0.001 * in_param["gkabar_borgka"]
+        #
+        # sec.insert('nca')
+        # sec.gncabar_nca    = 0.001 * in_param["gncabar_nca"]
+        #
+        # sec.insert('lca')
+        # sec.glcabar_lca    = 0.005 * in_param["glcabar_lca"]
+        #
+        # sec.insert('cat')
+        # sec.gcatbar_cat = 0.000037 * in_param["gcatbar_cat"]
+        #
+        # sec.insert('gskch')
+        # sec.gskbar_gskch   = 0.001 * in_param["gskbar_gskch"]
 
-        sec.insert('nca')
-        sec.gncabar_nca    = 0.001 * in_param["gncabar_nca"]
-
-        sec.insert('lca')
-        sec.glcabar_lca    = 0.005 * in_param["glcabar_lca"]
-
-        sec.insert('cat')
-        sec.gcatbar_cat = 0.000037 * in_param["gcatbar_cat"]
-    #
-    #     sec.insert('gskch')
-    #     sec.gskbar_gskch   = 0.001 * in_param["gskbar_gskch"]
-    #
     #     sec.insert('cagk')
     #     sec.gkbar_cagk    = 0.0006 * in_param["gkbar_cagk"]
     #
         sec.cm               = 1.0 * in_param["cm_mult"]
-        print sec.cm
 
     # for sec in cell.c.dend:
     #     sec.insert('ichan2')
@@ -230,14 +229,14 @@ def getBiophysics(cell, in_param):
     #         sec.cm             = 1.6      * in_param["cm_mult"]
 
     for sec in cell.c.somatic:
-        sec.cao       = in_param["cao"]
-        sec.ek        = in_param["ek"]
+        # sec.cao       = in_param["cao"]
+        # sec.ek        = in_param["ek"]
         sec.enat      = in_param["enat"]
         sec.ekf       = in_param["ekf"]
         sec.eks       = in_param["eks"]
-        sec.elca      = in_param["elca"]
-        sec.etca      = in_param["etca"]
-    #     sec.esk       = in_param["esk"]
+        # sec.elca      = in_param["elca"]
+        # sec.etca      = in_param["etca"]
+        # sec.esk       = in_param["esk"]
     #     sec.el_ichan2 = in_param["el_ichan2"]
 
 # Function to specify the biophysics of the reduced cell model
