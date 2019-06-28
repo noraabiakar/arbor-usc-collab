@@ -248,7 +248,7 @@ cell_layers get_layer_info(std::string filename, double res) {
 
     unsigned seg_id = 0;
     for (auto& seg: cell.segments()) {
-        if (!seg->is_soma() && seg_id>0) {
+        if (!seg->is_soma() && seg_id > 0) {
             std::vector<double> x_interp, y_interp, z_interp;
             auto length = seg->as_cable()->length();
             auto n = (unsigned)std::ceil(length/res);
@@ -282,7 +282,7 @@ cell_layers get_layer_info(std::string filename, double res) {
                 for (auto e: layer_extents.map) {
                     if (ext[i] >= e.second.first && ext[i] < e.second.second) {
                         l.map[e.first].push_back(norm[i]);
-                        ret.segments.map[e.first].push_back(seg_id - 1);
+                        ret.segments.map[e.first].push_back(seg_id);
                     }
                 }
             }

@@ -322,9 +322,6 @@ arb::cable_cell granule_cell(
                 std::cout << "selected synapse: " << v.segment << " " << v.pos << std::endl;
             }
             else {
-                if (v.segment == 1) {
-                    std::cout << "here: "<< v.segment << "  "<< v.pos << std::endl;
-                }
                 arb::mechanism_desc exp2syn("exp2syn");
                 exp2syn["tau1"] = params.tau1_reg;
                 exp2syn["tau2"] = params.tau2_reg;
