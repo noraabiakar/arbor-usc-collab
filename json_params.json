@@ -49,7 +49,7 @@
     "syn_id": 12,
     "syn_layer": "middleThird",
 
-    "seg_res": 0.5,
+    "seg_res": 0.01,
 
     "weight": 1.17,
     "morph_file": "/home/abiakarn/git/usc_neuron/morphologies/output0_updated.swc"
