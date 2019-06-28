@@ -248,9 +248,10 @@ cell_layers get_layer_info(std::string filename, double res) {
 
     unsigned seg_id = 0;
     for (auto& seg: cell.segments()) {
-        if (!seg->is_soma() && seg_id > 0) {
+        if (!seg->is_soma()) {
             std::vector<double> x_interp, y_interp, z_interp;
             auto length = seg->as_cable()->length();
+            std::cout << length << std::endl;
             auto n = (unsigned)std::ceil(length/res);
             nseg.push_back(n);
             seg->as_cable()->set_compartments(n);

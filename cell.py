@@ -223,7 +223,6 @@ class Cell:
         tot_seg = 1
         for dendType in self.dendTypeList:
             for sec in self.dendTypeList[dendType]:
-                print sec.L
                 if sec.L >= nseg_res:
                     sec.nseg = int(np.ceil(sec.L/nseg_res))
                 else:
