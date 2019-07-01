@@ -6,6 +6,12 @@ import numpy as np
 import time as cookie
 import pylab as plt
 import pickle
+import json
+import sys
+
+with open(sys.argv[1]) as json_file:
+    in_param = json.load(json_file)
+
 np.random.seed(149)
 
 h.load_file("stdrun.hoc")
@@ -17,11 +23,11 @@ ID = 0
 location = (0,0)
 synvars = {}
 synvars['type'] = "E2"
-fname_morph = 'morphologies/output0_updated.swc'
+fname_morph = in_param["morph_file"]
 modeltype = 'Single'
 celltype = 'basketcell'
 
-neuron_DG = cell.Cell(ID,location,synvars,celltype,fname_morph,modeltype)
+neuron_DG = cell.Cell(ID,location,synvars,celltype,fname_morph, in_param, modeltype)
 
 ################################
 # Create spike times for input #
@@ -61,13 +67,13 @@ for v in vec:
 #####################
 # Connecting inputs #
 #####################
-w_MEA_av = 1.438995e-04
+w_MEA_av = in_param["weight"]
 net_cons = []
 for ii in range(num_input):
     nc = h.NetCon(vecstims[ii], neuron_DG.synGroups['AMPA']['soma'][0])
-    neuron_DG.synGroups['AMPA']['soma'][0].tau1 = 0.1
-    neuron_DG.synGroups['AMPA']['soma'][0].tau2 = 16.423438
-    neuron_DG.synGroups['AMPA']['soma'][0].e = 0
+    neuron_DG.synGroups['AMPA']['soma'][0].tau1 = in_param["tau1_syn"]
+    neuron_DG.synGroups['AMPA']['soma'][0].tau2 = in_param["tau2_syn"]
+    neuron_DG.synGroups['AMPA']['soma'][0].e = in_param["e_syn"]
     nc.weight[0] = w_MEA_av
     nc.delay = 0
     net_cons.append(nc)
@@ -84,10 +90,10 @@ t.record(h._ref_t)
 #########################
 # Setting up simulation #
 #########################
-h.v_init = -70
+h.v_init = in_param["vinit"]
 h.t = 0
-h.dt = 0.025
-h.celsius = 35.0
+h.dt = in_param["dt_neuron"]
+h.celsius = in_param["temp"]
 h("tstep = 0")
 h("period = 2")
 h.tstop = tstop

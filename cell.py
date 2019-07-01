@@ -156,7 +156,7 @@ class Cell:
 
             # Each cell class needs to have this function to define their own conductance
             # levels.
-            self.celltype.getReducedBiophysics(self)
+            self.celltype.getReducedBiophysics(self, in_param)
 
             # Each cell class needs to have a single compartment version to add all the
             # different synapses
