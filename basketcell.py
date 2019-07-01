@@ -134,42 +134,40 @@ def getBiophysics(cell):
     cell.c.soma.cao = 2
 
 # Function to specify the biophysics of the reduced cell model
-def getReducedBiophysics(cell):
+def getReducedBiophysics(cell, in_params):
     cell.soma.nseg = 1
     cell.soma.L = 20
     cell.soma.diam = 15
 
-    cell.soma.insert('hh')
-
     # cell.soma.insert('ccanl')
-    # cell.soma.insert('borgka')
-    # cell.soma.insert('nca')
-    # cell.soma.insert('lca')
-    # cell.soma.insert('gskch')
-    # cell.soma.insert('cagk')
-    #
-    # cell.soma.catau_ccanl = 10
-    # cell.soma.caiinf_ccanl = 5.0e-6
-    # cell.soma.gkabar_borgka = 0.00015
-    # cell.soma.gncabar_nca = 0.0008
-    # cell.soma.glcabar_lca = 0.005
-    # cell.soma.gskbar_gskch = 0.000002
-    # cell.soma.gkbar_cagk = 0.0002
-    #
-    # cell.soma.insert('ichan2')
-    # cell.soma.cm = 1.4
-    # cell.soma.gnatbar_ichan2 = 0.12
-    # cell.soma.gkfbar_ichan2 = 0.013
-    # cell.soma.gl_ichan2 = 0.00018
-    #
-    cell.soma.Ra = 100
-    # cell.soma.enat = 55
-    # cell.soma.ekf = -90
-    # cell.soma.ek = -90
-    # cell.soma.elca = 130
-    # cell.soma.esk = -90
-    # cell.soma.el_ichan2 = -65
-    # cell.soma.cao = 2
+    cell.soma.insert('ichan2')
+    cell.soma.insert('borgka')
+    cell.soma.insert('nca')
+    cell.soma.insert('lca')
+    cell.soma.insert('gskch')
+    cell.soma.insert('cagk')
+
+    # cell.soma.catau_ccanl = in_params["catau_ccanl"]
+    # cell.soma.caiinf_ccanl = in_params["caiinf_ccanl"]
+    cell.soma.gnatbar_ichan2 = in_params["gnatbar_ichan2"]
+    cell.soma.gkfbar_ichan2 = in_params["gkfbar_ichan2"]
+    cell.soma.gl_ichan2 = in_params["gl_ichan2"]
+    cell.soma.el_ichan2 = in_params["el_ichan2"]
+    cell.soma.gkabar_borgka = in_params["gkabar_borgka"]
+    cell.soma.gncabar_nca = in_params["gncabar_nca"]
+    cell.soma.glcabar_lca = in_params["glcabar_lca"]
+    cell.soma.gskbar_gskch = in_params["gskbar_gskch"]
+    cell.soma.gkbar_cagk = in_params["gkbar_cagk"]
+
+    cell.soma.cm = in_params["cm"]
+
+    cell.soma.Ra = in_params["ra"]
+    cell.soma.enat = in_params["enat"]
+    cell.soma.ekf = in_params["ekf"]
+    cell.soma.ek = in_params["ek"]
+    cell.soma.elca = in_params["elca"]
+    cell.soma.esk = in_params["esk"]
+    cell.soma.cao = in_params["cao"]
 
 # Function to create a synapse at the chosen segment in a section
 def createSyn(synvars,sec_choice,seg_choice):

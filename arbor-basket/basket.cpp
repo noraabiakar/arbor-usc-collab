@@ -44,18 +44,31 @@ using arb::cell_probe_address;
  void write_trace_json(const arb::trace_data<double>& trace);
 
 // Generate a cell.
-arb::cable_cell basket_cell(arb::cell_gid_type gid);
+arb::cable_cell basket_cell(const basket_params& params);
 
 class basket_recipe: public arb::recipe {
 public:
-    basket_recipe(const std::vector<double>& spikes): num_cells_(1), spikes_(spikes) {}
+    basket_recipe(const basket_params& params):
+    num_cells_(1),
+    params_(params),
+    event_weight_(params_.weight),
+    catalogue_(arb::global_default_catalogue()){
+
+        cell_gprop_.catalogue = &catalogue_;
+        cell_gprop_.default_parameters = arb::neuron_parameter_defaults;
+        cell_gprop_.default_parameters.temperature_K = params_.temp + 273.15;
+        cell_gprop_.default_parameters.init_membrane_potential = params_.v_init;
+
+        cell_gprop_.default_parameters.ion_data["k"].init_reversal_potential = params_.ek;
+        cell_gprop_.default_parameters.ion_data["ca"].init_ext_concentration = params_.cao;
+    }
 
     cell_size_type num_cells() const override {
         return num_cells_;
     }
 
     arb::util::unique_any get_cell_description(cell_gid_type gid) const override {
-        return basket_cell(gid);
+        return basket_cell(params_);
     }
 
     cell_kind get_cell_kind(cell_gid_type gid) const override {
@@ -75,7 +88,7 @@ public:
     std::vector<arb::event_generator> event_generators(cell_gid_type gid) const override {
         std::vector<arb::event_generator> gens;
         arb::pse_vector svec;
-        for (auto s: spikes_) {
+        for (auto s: params_.spikes) {
             svec.push_back({{0, 0}, s, event_weight_});
         }
         gens.push_back(arb::explicit_generator(svec));
@@ -98,16 +111,20 @@ public:
     }
 
     arb::util::any get_global_properties(cell_kind k) const override {
-        arb::cable_cell_global_properties a;
-        a.temperature_K = 308.15;
-        a.init_membrane_potential_mV = -70;
-        return a;
+        return cell_gprop_;
+    }
+
+    void add_ion(const std::string& ion_name, int charge, double init_iconc, double init_econc, double init_revpot) {
+        cell_gprop_.add_ion(ion_name, charge, init_iconc, init_econc, init_revpot);
     }
 
 private:
     cell_size_type num_cells_;
-    std::vector<double> spikes_;
-    float event_weight_ = 1.438995e-04;
+    basket_params params_;
+    float event_weight_;
+
+    arb::cable_cell_global_properties cell_gprop_;
+    arb::mechanism_catalogue catalogue_;
 };
 
 
@@ -143,13 +160,20 @@ int main(int argc, char** argv) {
         std::cout << "mpi:      " << (has_mpi(context)? "yes": "no") << "\n";
         std::cout << "ranks:    " << num_ranks(context) << "\n" << std::endl;
 
-        auto spikes = read_spike_times();
+        auto params = read_params(argc, argv);
 
         arb::profile::meter_manager meters;
         meters.start(context);
 
         // Create an instance of our recipe.
-        basket_recipe recipe(spikes);
+        basket_recipe recipe(params);
+        recipe.add_ion("nca", 2, 1.0, 1.0, 0);
+        recipe.add_ion("lca", 2, 1.0, 1.0, params.elca);
+        recipe.add_ion("tca", 2, 1.0, 1.0, 0);
+        recipe.add_ion("sk",  1, 1.0, 1.0, params.esk);
+        recipe.add_ion("nat", 1, 1.0, 1.0, params.enat);
+        recipe.add_ion("kf",  1, 1.0, 1.0, params.ekf);
+        recipe.add_ion("ks",  1, 1.0, 1.0, 0);
 
         auto decomp = arb::partition_load_balance(recipe, context);
 
@@ -240,20 +264,46 @@ void write_trace_json(const arb::trace_data<double>& trace) {
     file << std::setw(1) << json << "\n";
 }
 
-arb::cable_cell basket_cell(arb::cell_gid_type gid) {
+arb::cable_cell basket_cell(const basket_params& params) {
     arb::cable_cell cell;
 
     // Add soma.
     auto soma = cell.add_soma(17.32051/2.0); // For area of 500 μm².
-    soma->rL = 100;
-    soma->add_mechanism("hh");
+    soma->parameters.membrane_capacitance = params.ra;
+    soma->parameters.membrane_capacitance = params.cm/100;
+
+    arb::mechanism_desc ichan2("ichan2");
+    arb::mechanism_desc borgka("borgka");
+    arb::mechanism_desc nca("nca");
+    arb::mechanism_desc lca("lca");
+    arb::mechanism_desc cat("cat");
+    arb::mechanism_desc gskch("gskch");
+    arb::mechanism_desc cagk("cagk");
+
+    ichan2["gnatbar"] = params.gnatbar_ichan2;
+    ichan2["gkfbar"]  = params.gkfbar_ichan2;
+    ichan2["gl"]      = params.gl_ichan2;
+    ichan2["el"]      = params.el_ichan2;
+    borgka["gkabar"]  = params.gkabar_borgka;
+    nca["gncabar"]    = params.gncabar_nca;
+    lca["glcabar"]    = params.glcabar_lca;
+    gskch["gskbar"]   = params.gskbar_gskch;
+    cagk["gkbar"]     = params.gkbar_cagk;
+
+    soma->add_mechanism(ichan2);
+    soma->add_mechanism(borgka);
+    soma->add_mechanism(nca);
+    soma->add_mechanism(lca);
+    soma->add_mechanism(cat);
+    soma->add_mechanism(gskch);
+    soma->add_mechanism(cagk);
 
     cell.add_detector({0, 0}, 10);
 
     arb::mechanism_desc exp2syn("exp2syn");
-    exp2syn["tau1"] = 0.1;
-    exp2syn["tau2"] = 16.423438;
-    exp2syn["e"] = 0;
+    exp2syn["tau1"] = params.tau1_syn;
+    exp2syn["tau2"] = params.tau2_syn;
+    exp2syn["e"] = params.e_syn;
 
     cell.add_synapse({0, 0.5}, exp2syn);
 

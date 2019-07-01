@@ -1,0 +1,37 @@
+{
+    "dt_arbor": 0.01,
+    "dt_neuron": 0.01,
+    "temp": 35.0,
+    "vinit": -70.0,
+
+    "tau1_syn": 0.1,
+    "tau2_syn": 16.423438,
+    "e_syn":    0.0,
+
+    "gnatbar_ichan2": 0.12,
+    "gkfbar_ichan2":  0.013,
+    "gkabar_borgka":  0.00015,
+    "gncabar_nca":    0.0008,
+    "glcabar_lca":    0.005,
+    "gskbar_gskch":   0.000002,
+    "gkbar_cagk":     0.0002,
+    "gl_ichan2":      0.00018,
+    "catau_ccanl":    10,
+    "caiinf_ccanl":   5.0e-6,
+
+    "ra" : 100,
+    "cm" : 1.4,
+
+    "enat":       55,
+    "ekf":       -90,
+    "ek":        -90,
+    "elca":      130,
+    "esk":       -90,
+    "el_ichan2": -65,
+    "cao":         2,
+
+    "seg_res": 0.1,
+
+    "weight": 1.438995e-04,
+    "morph_file": "/home/abiakarn/git/usc_neuron/morphologies/output0_updated.swc"
+}
