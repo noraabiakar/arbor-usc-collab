@@ -121,15 +121,6 @@ def getBiophysics(cell, in_param):
 
     # Now, insert the proper biophysics for each section.
     for sec in cell.c.all:
-        # sec.insert('hh') #**
-        # sec.gnabar_hh= in_param["hh_gnabar"] #**
-        # sec.gkbar_hh = in_param["hh_gkbar"] #**
-        # sec.gl_hh = in_param["hh_gl"] #**
-        # sec.ena = in_param["hh_ena"] #**
-        # sec.ek = in_param["hh_ek"] #**
-        # sec.Ra = in_param["ra"] #**
-        # sec.cm = in_param["cm"] #**
-
         # sec.insert('ccanl')
         # sec.catau_ccanl=10*cell.k1
         # sec.caiinf_ccanl=5.0e-6*cell.l1
@@ -163,32 +154,16 @@ def getBiophysics(cell, in_param):
 
         sec.cm               = 1.0 * in_param["cm_mult"]
 
-        sec.cao       = in_param["cao"]
-        sec.ek        = in_param["ek"]
-        sec.enat      = in_param["enat"]
-        sec.ekf       = in_param["ekf"]
-        sec.eks       = in_param["eks"]
-        sec.elca      = in_param["elca"]
-        sec.etca      = in_param["etca"]
-        sec.esk       = in_param["esk"]
-
-    # for sec in cell.c.dend:
-    #     sec.insert('ichan2')
-    #     sec.insert('nca')
-    #     sec.insert('lca')
-    #     sec.insert('cat')
-    #     sec.insert('gskch')
-    #     sec.insert('cagk')
+    for sec in cell.c.dend:
+        sec.insert('ichan2')
+        sec.insert('nca')
+        sec.insert('lca')
+        sec.insert('cat')
+        sec.insert('gskch')
+        sec.insert('cagk')
 
     for sec in cell.granuleCellLayer:
         if len(cell.granuleCellLayer[sec]) > 0:
-            sec.insert('ichan2')
-            sec.insert('nca')
-            sec.insert('lca')
-            sec.insert('cat')
-            sec.insert('gskch')
-            sec.insert('cagk')
-
             #for norm_dist in cell.granuleCellLayer[sec]:
             sec.gnatbar_ichan2 = 0.018   * in_param["gnatbar_ichan2"]
             sec.gkfbar_ichan2  = 0.004
@@ -202,24 +177,8 @@ def getBiophysics(cell, in_param):
             sec.gkbar_cagk     = 0.0006  * in_param["gkbar_cagk"]
             sec.cm             = 1.0     * in_param["cm_mult"]
 
-            sec.cao       = in_param["cao"]
-            sec.enat      = in_param["enat"]
-            sec.ekf       = in_param["ekf"]
-            sec.eks       = in_param["eks"]
-            sec.elca      = in_param["elca"]
-            sec.etca      = in_param["etca"]
-            sec.esk       = in_param["esk"]
-
-
     for sec in cell.innerThird:
         if len(cell.innerThird[sec]) > 0:
-            sec.insert('ichan2')
-            sec.insert('nca')
-            sec.insert('lca')
-            sec.insert('cat')
-            sec.insert('gskch')
-            sec.insert('cagk')
-
             # for norm_dist in cell.innerThird[sec]:
             sec.gnatbar_ichan2 = 0.013    * in_param["gnatbar_ichan2"]
             sec.gkfbar_ichan2  = 0.004
@@ -233,24 +192,8 @@ def getBiophysics(cell, in_param):
             sec.gkbar_cagk     = 0.001    * in_param["gkbar_cagk"]
             sec.cm             = 1.6      * in_param["cm_mult"]
 
-            sec.cao       = in_param["cao"]
-            sec.enat      = in_param["enat"]
-            sec.ekf       = in_param["ekf"]
-            sec.eks       = in_param["eks"]
-            sec.elca      = in_param["elca"]
-            sec.etca      = in_param["etca"]
-            sec.esk       = in_param["esk"]
-
-
     for sec in cell.middleThird:
         if len(cell.middleThird[sec]) > 0:
-            sec.insert('ichan2')
-            sec.insert('nca')
-            sec.insert('lca')
-            sec.insert('cat')
-            sec.insert('gskch')
-            sec.insert('cagk')
-
             # for norm_dist in cell.middleThird[sec]:
             sec.gnatbar_ichan2 = 0.008    * in_param["gnatbar_ichan2"]
             sec.gkfbar_ichan2  = 0.001
@@ -264,24 +207,8 @@ def getBiophysics(cell, in_param):
             sec.gkbar_cagk     = 0.0024   * in_param["gkbar_cagk"]
             sec.cm             = 1.6      * in_param["cm_mult"]
 
-            sec.cao       = in_param["cao"]
-            sec.enat      = in_param["enat"]
-            sec.ekf       = in_param["ekf"]
-            sec.eks       = in_param["eks"]
-            sec.elca      = in_param["elca"]
-            sec.etca      = in_param["etca"]
-            sec.esk       = in_param["esk"]
-
-
     for sec in cell.outerThird:
         if len(cell.outerThird[sec]) > 0:
-            sec.insert('ichan2')
-            sec.insert('nca')
-            sec.insert('lca')
-            sec.insert('cat')
-            sec.insert('gskch')
-            sec.insert('cagk')
-
             # for norm_dist in cell.outerThird[sec]:
             sec.gnatbar_ichan2 = 0.0      * in_param["gnatbar_ichan2"]
             sec.gkfbar_ichan2  = 0.001
@@ -295,23 +222,15 @@ def getBiophysics(cell, in_param):
             sec.gkbar_cagk     = 0.0024   * in_param["gkbar_cagk"]
             sec.cm             = 1.6      * in_param["cm_mult"]
 
-            sec.cao       = in_param["cao"]
-            sec.enat      = in_param["enat"]
-            sec.ekf       = in_param["ekf"]
-            sec.eks       = in_param["eks"]
-            sec.elca      = in_param["elca"]
-            sec.etca      = in_param["etca"]
-            sec.esk       = in_param["esk"]
-
-    # for sec in cell.c.all:
-    #     sec.cao       = in_param["cao"]
-    #     sec.ek        = in_param["ek"]
-    #     sec.enat      = in_param["enat"]
-    #     sec.ekf       = in_param["ekf"]
-    #     sec.eks       = in_param["eks"]
-    #     sec.elca      = in_param["elca"]
-    #     sec.etca      = in_param["etca"]
-    #     sec.esk       = in_param["esk"]
+    for sec in cell.c.all:
+        sec.ek        = in_param["ek"]
+        sec.cao       = in_param["cao"]
+        sec.enat      = in_param["enat"]
+        sec.ekf       = in_param["ekf"]
+        sec.eks       = in_param["eks"]
+        sec.elca      = in_param["elca"]
+        sec.etca      = in_param["etca"]
+        sec.esk       = in_param["esk"]
 
 # Function to specify the biophysics of the reduced cell model
 def getReducedBiophysics(cell):

@@ -336,15 +336,6 @@ arb::cable_cell granule_cell(
 
     unsigned seg_id = 0;
     for (auto& segment: cell.segments()) {
-        /*arb::mechanism_desc hh("hh");
-        hh["gnabar"] = params.hh_gnabar;
-        hh["gkbar"] = params.hh_gkbar;
-        hh["gl"] = params.hh_gl;
-        hh["ena"] = params.hh_ena;
-        hh["ek"] = params.hh_ek;
-
-        segment->add_mechanism(hh);*/
-
         segment->parameters.axial_resistivity = 410 * params.ra_mult;
 
         if(segment->as_soma()) {
@@ -401,12 +392,6 @@ arb::cable_cell granule_cell(
                 cagk["gkbar"]     = 0.0006  * params.gkbar_cagk;
 
                 segment->parameters.membrane_capacitance = 1.0 * params.cm_mult/100;
-                segment->add_mechanism(ichan2);
-                segment->add_mechanism(nca);
-                segment->add_mechanism(lca);
-                segment->add_mechanism(cat);
-                segment->add_mechanism(gskch);
-                segment->add_mechanism(cagk);
             }
 
             if(std::binary_search(layer_info.segments.map["innerThird"].begin(),
@@ -423,12 +408,6 @@ arb::cable_cell granule_cell(
                 cagk["gkbar"]     = 0.001    * params.gkbar_cagk;
 
                 segment->parameters.membrane_capacitance = 1.6 * params.cm_mult/100;
-                segment->add_mechanism(ichan2);
-                segment->add_mechanism(nca);
-                segment->add_mechanism(lca);
-                segment->add_mechanism(cat);
-                segment->add_mechanism(gskch);
-                segment->add_mechanism(cagk);
             }
 
             if(std::binary_search(layer_info.segments.map["middleThird"].begin(),
@@ -445,12 +424,6 @@ arb::cable_cell granule_cell(
                 cagk["gkbar"]     = 0.0024   * params.gkbar_cagk;
 
                 segment->parameters.membrane_capacitance = 1.6 * params.cm_mult/100;
-                segment->add_mechanism(ichan2);
-                segment->add_mechanism(nca);
-                segment->add_mechanism(lca);
-                segment->add_mechanism(cat);
-                segment->add_mechanism(gskch);
-                segment->add_mechanism(cagk);
             }
 
             if(std::binary_search(layer_info.segments.map["outerThird"].begin(),
@@ -467,20 +440,14 @@ arb::cable_cell granule_cell(
                 cagk["gkbar"]     = 0.0024   * params.gkbar_cagk;
 
                 segment->parameters.membrane_capacitance = 1.6 * params.cm_mult/100;
-                segment->add_mechanism(ichan2);
-                segment->add_mechanism(nca);
-                segment->add_mechanism(lca);
-                segment->add_mechanism(cat);
-                segment->add_mechanism(gskch);
-                segment->add_mechanism(cagk);
             }
 
-//            segment->add_mechanism(ichan2);
-//            segment->add_mechanism(nca);
-//            segment->add_mechanism(lca);
-//            segment->add_mechanism(cat);
-//            segment->add_mechanism(gskch);
-//            segment->add_mechanism(cagk);
+            segment->add_mechanism(ichan2);
+            segment->add_mechanism(nca);
+            segment->add_mechanism(lca);
+            segment->add_mechanism(cat);
+            segment->add_mechanism(gskch);
+            segment->add_mechanism(cagk);
         }
         seg_id++;
     }
