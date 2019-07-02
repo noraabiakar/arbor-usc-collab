@@ -117,7 +117,7 @@ def makeSegLocDict(cell):
 
 # Function to specify the biophysics of the cell
 def getBiophysics(cell, in_param):
-    #cell.c.soma[0].L *= 2
+    cell.c.soma[0].L *= 2
 
     # Now, insert the proper biophysics for each section.
     for sec in cell.c.all:
