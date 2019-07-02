@@ -294,7 +294,16 @@ arb::cable_cell granule_cell(
     std::ifstream f(filename);
     if (!f) throw std::runtime_error("unable to open file");
 
-    auto morph = arb::swc_as_morphology(arb::parse_swc_file(f));
+    auto samples = arb::parse_swc_file(f);
+
+    for (auto& s: samples) {
+        if (s.type == arb::swc_record::kind::soma) {
+            s.r *= std::sqrt(2);
+            break;
+        }
+    }
+
+    auto morph = arb::swc_as_morphology(samples);
     arb::cable_cell cell = arb::make_cable_cell(morph);
 
     int tot_seg = 1;
