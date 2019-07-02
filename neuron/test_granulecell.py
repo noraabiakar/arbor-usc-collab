@@ -33,33 +33,17 @@ neuron_DG = cell.Cell(ID,location,synvars,celltype,fname_morph,in_param, modelty
 # Create spike times for input #
 ################################
 num_input = 1
-tstop = 200 # unts: ms
-frequency = 5 # units: Hz
+tstop = in_param["run_time"] # unts: ms
 
 vecstims = [h.VecStim() for ii in range(num_input)]
 evecs = [h.Vector() for ii in range(num_input)]
-vec = []
 
 for ii in range(num_input):
-    intervals = []
-    mu = 1000./frequency # Convert to ms
-    elapsed_time = 0
-    flag = 1
-    while flag:
-        roll = np.random.uniform(0,1)
-        interval = -mu*np.log(roll)
-        
-        intervals.append(interval)
-        elapsed_time += interval
-        
-        if elapsed_time > tstop:
-            flag = 0
-            spikes = np.cumsum(intervals)[:-1]
-            for spike in spikes:
-                evecs[ii].append(spike)
-                vec.append(spike)
-            
-            vecstims[ii].play(evecs[ii])
+    for spike in in_param["spikes"]:
+        if spike > tstop:
+            break
+        evecs[ii].append(spike)
+    vecstims[ii].play(evecs[ii])
 
 #####################
 # Connecting inputs #

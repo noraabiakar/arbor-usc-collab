@@ -104,6 +104,9 @@ public:
         std::vector<arb::event_generator> gens;
         arb::pse_vector svec;
         for (auto s: params_.spikes) {
+            if (s > params_.run_time) {
+                break;
+            }
             svec.push_back({{0, glob_syn_id}, s, event_weight_});
         }
         gens.push_back(arb::explicit_generator(svec));
@@ -202,10 +205,12 @@ int main(int argc, char** argv) {
 
         // The id of the only probe on the cell: the cell_member type points to (cell 0, probe 0)
         auto probe_id = cell_member_type{0, 0};
-        // The schedule for sampling is 10 samples every 1 ms.
+
         auto sched = arb::regular_schedule(params.dt);
+
         // This is where the voltage samples will be stored as (time, value) pairs
         arb::trace_data<double> voltage;
+
         // Now attach the sampler at probe_id, with sampling schedule sched, writing to voltage
         sim.add_sampler(arb::one_probe(probe_id), sched, arb::make_simple_sampler(voltage));
 
@@ -221,8 +226,8 @@ int main(int argc, char** argv) {
         meters.checkpoint("model-init", context);
 
         std::cout << "running simulation" << std::endl;
-        // Run the simulation for 100 ms, with time steps of 0.025 ms.
-        sim.run(200, params.dt);
+
+        sim.run(params.run_time, params.dt);
 
         meters.checkpoint("model-run", context);
 
@@ -231,7 +236,7 @@ int main(int argc, char** argv) {
         // Write spikes to file
         if (root) {
             std::cout << "\n" << ns << " spikes generated at rate of "
-                      << 200 << " ms between spikes\n";
+                      << params.run_time << " ms between spikes\n";
             std::ofstream fid("spikes.gdf");
             if (!fid.good()) {
                 std::cerr << "Warning: unable to open file spikes.gdf for spike output\n";
@@ -388,7 +393,6 @@ arb::cable_cell granule_cell(
 
             if(std::binary_search(layer_info.segments.map["granuleCellLayer"].begin(),
                                   layer_info.segments.map["granuleCellLayer"].end(), seg_id)) {
-                std::cout << seg_id << std::endl;
                 ichan2["gnatbar"] = 0.018   * params.gnatbar_ichan2;
                 ichan2["gkfbar"]  = 0.004;
                 ichan2["gksbar"]  = 0.006;

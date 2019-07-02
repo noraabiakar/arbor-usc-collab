@@ -5,7 +5,7 @@ This repository contains the Neuron and Arbor implementations and simulations of
 
 ## Morphologies
 1) The basket cell is a single soma model
-2) The granule cell reads the morphology from output0_updated.swc in the morphologies directory
+2) The granule cell reads the morphology from **output0_updated.swc** in the morphologies directory
 
 ## Density Mechanisms
 The basket and granule cells both have the following mechanisms inserted on the soma and dendrites:
@@ -18,11 +18,12 @@ The basket and granule cells both have the following mechanisms inserted on the 
 7) lca.mod
 8) nca.mod
 
-## Stimulus
-A series of spikes is delivered to a synapse on the basket/granule cell.
-
 ## Parameters
 Various parameters can be set and will be read by Arbor and Neuron in param_basket.json and param_granule.json
+
+## Stimulus
+A series of spikes is delivered to a synapse on the basket/granule cell.
+The spike times are read from param_basket.json and param_granule.json.
 
 ## Running the examples
 
@@ -35,7 +36,7 @@ OR
 $ python2 test_basketcell.py ../param_basket.json
 ```
 
-*Running the examples will generate a plot*
+Running the examples will generate a plot
 
 ### Arbor:
 **Installing Arbor**:
@@ -46,9 +47,9 @@ https://arbor.readthedocs.io/en/latest/install.html
 
 **Compiling the example**:
 ```
-$ cd arbor/arbor-granule
+$ cd arbor/granule
 OR
-$ cd arbor/arbor-basket
+$ cd arbor/basket
 
 $ mkdir build && cd build
 $ cmake .. -DCMAKE_INSTALL_PREFIX=/path/to/arbor/installation -DCMAKE_BUILD_TYPE=release
@@ -57,16 +58,16 @@ $ make
 
 **Running the example**:
 ```
-$ ./arbor-granule ../../../param_granule.json
+$ ./granule ../../../param_granule.json
 OR
-$ ./arbor-basket ../../../param_basket.json
+$ ./basket ../../../param_basket.json
 ```
 
 **Plotting the results**:
 
-*Running the examples will generate voltages.json*. To plot the results, you can use the provided **tsplot** script:
+Running the examples will generate **voltages.json**. To plot the results, you can use the provided **tsplot** script:
 ```
-$ python2 tsplot.py arbor/arbor-granule/build/voltages.json
+$ python2 tsplot.py arbor/granule/build/voltages.json
 OR
-$ python2 tsplot.py arbor/arbor-basket/build/voltages.json
+$ python2 tsplot.py arbor/basket/build/voltages.json
 ```

@@ -12,28 +12,12 @@ std::vector<double> read_spike_times();
 
 struct granule_params {
     std::string morph_file;
-    std::vector<double> spikes = {
-            25.269724183039855, 29.37076391451496, 58.472477010286546, 93.80268485203328,
-            112.71090127018375, 142.6472406502223/*, 293.3318516075217, 456.96763867081177,
-            559.0808556112847, 1091.4908947982385, 1265.7627055896965, 1286.3817213526308,
-            1726.173576102434, 1744.7268859340948, 2072.358562894649, 2429.33700123744,
-            2438.882187257708, 2444.85687651729, 2500.3783411639783, 2523.5435646207175,
-            2633.0843793058734, 2663.3213690478333, 3081.2091382891876, 3104.234316785872,
-            3209.158889778191, 3311.7494479555003, 3628.0607334944084, 3892.4078916268645,
-            3905.382779351989, 3972.478937325283, 4039.5190445966164, 4275.579471624872,
-            4761.533462201488, 4875.327265653268, 4946.068519184462, 5186.38947000671,
-            5250.193973512949, 5405.921064743746, 6075.548637890089, 6106.605889233615,
-            6392.503123563068, 6484.87209757147, 6622.667183819736, 7132.979244248274,
-            7214.140067854784, 7632.383314077037, 7662.664989661292, 7663.029726732657,
-            8205.521919274834, 8514.66346930178, 8998.325190823954, 9387.223218469393,
-            9453.933657798472, 9544.328220467469, 9858.711284584584, 9955.045230553718,
-            9956.054906300105*/
-    };
+    std::vector<float> spikes;
+
     double temp, v_init;
+
     double tau1_reg, tau2_reg, e_reg;
     double tau1_syn, tau2_syn, e_syn;
-
-    double hh_gnabar, hh_gkbar, hh_gl, hh_ena, hh_ek;
 
     double gnatbar_ichan2, gkfbar_ichan2, gksbar_ichan2, gkabar_borgka, gncabar_nca, glcabar_lca;
     double gcatbar_cat, gskbar_gskch, gkbar_cagk, gl_ichan2, catau_ccanl, caiinf_ccanl;
@@ -45,14 +29,14 @@ struct granule_params {
 
     std::string syn_layer;
     unsigned syn_id;
-    double seg_res, dt, weight;
+    double seg_res, weight;
+    double run_time, dt;
 
 
 };
 
 granule_params read_params(int argc, char** argv) {
     granule_params p;
-    p.morph_file = "/home/abiakarn/git/usc_neuron/morphologies/output2_updated.swc";
 
     using sup::param_from_json;
 
@@ -74,21 +58,18 @@ granule_params read_params(int argc, char** argv) {
     nlohmann::json json;
     json << f;
 
+    param_from_json(p.spikes, "spikes", json);
+
     param_from_json(p.temp, "temp", json);
     param_from_json(p.v_init, "vinit", json);
     param_from_json(p.dt, "dt_arbor", json);
+    param_from_json(p.run_time, "run_time", json);
     param_from_json(p.tau1_reg, "tau1_reg", json);
     param_from_json(p.tau2_reg, "tau2_reg", json);
     param_from_json(p.e_reg, "e_reg", json);
     param_from_json(p.tau1_syn, "tau1_syn", json);
     param_from_json(p.tau2_syn, "tau2_syn", json);
     param_from_json(p.e_syn, "e_syn", json);
-
-    param_from_json(p.hh_gnabar, "hh_gnabar", json);
-    param_from_json(p.hh_gkbar, "hh_gkbar", json);
-    param_from_json(p.hh_gl, "hh_gl", json);
-    param_from_json(p.hh_ena, "hh_ena", json);
-    param_from_json(p.hh_ek, "hh_ek", json);
 
     param_from_json(p.gnatbar_ichan2, "gnatbar_ichan2", json);
     param_from_json(p.gkfbar_ichan2, "gkfbar_ichan2", json);
@@ -251,7 +232,6 @@ cell_layers get_layer_info(std::string filename, double res) {
         if (!seg->is_soma()) {
             std::vector<double> x_interp, y_interp, z_interp;
             auto length = seg->as_cable()->length();
-            std::cout << length << std::endl;
             auto n = (unsigned)std::ceil(length/res);
             nseg.push_back(n);
             seg->as_cable()->set_compartments(n);
