@@ -51,12 +51,10 @@ BREAKPOINT {
 }
 
 DERIVATIVE integrate {
-    ncai' = -(inca)/depth/96520 * (1e7) + (caiinf/3 - ncai)/catau
-    lcai' = -(ilca)/depth/96520 * (1e7) + (caiinf/3 - lcai)/catau
-    tcai' = -(itca)/depth/96520 * (1e7) + (caiinf/3 - tcai)/catau
-    cai   = ncai + lcai + tcai
-}
+    : Rescaled for unit compatibility pending resolution of issue #793.
 
-FUNCTION ktf(celsius) {
-    ktf = 1000*8.3134*(celsius + 273.15)/(2*96520)
+    ncai' = -(inca)/depth/96520 * (1e6) + (caiinf/3 - ncai)/catau
+    lcai' = -(ilca)/depth/96520 * (1e6) + (caiinf/3 - lcai)/catau
+    tcai' = -(itca)/depth/96520 * (1e6) + (caiinf/3 - tcai)/catau
+    cai   = ncai + lcai + tcai
 }

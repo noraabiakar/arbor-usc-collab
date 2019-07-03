@@ -17,6 +17,7 @@
 #include "mechanisms/ichan2.hpp"
 #include "mechanisms/lca.hpp"
 #include "mechanisms/nca.hpp"
+#include "mechanisms/constant_ionic_current.hpp"
 
 #include "../gtest.h"
 
@@ -45,6 +46,7 @@ mechanism_catalogue make_usc_catalogue() {
     ADD_MECH(usc_cat, ichan2)
     ADD_MECH(usc_cat, lca)
     ADD_MECH(usc_cat, nca)
+    ADD_MECH(usc_cat, constant_ionic_current)
 
     return usc_cat;
 }

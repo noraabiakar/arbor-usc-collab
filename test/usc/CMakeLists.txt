@@ -10,6 +10,7 @@ set(usc_mechanisms
     ichan2
     lca
     nca
+    constant_ionic_current
 )
 
 include(${PROJECT_SOURCE_DIR}/mechanisms/BuildModules.cmake)
