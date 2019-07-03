@@ -314,6 +314,10 @@ public:
 
         return rel*radii_[i] + (1.-rel)*radii_[i+1];
     }
+    std::vector<point_type> locations() const {
+        return locations_;
+    }
+
 
 private:
     void update_lengths() {
