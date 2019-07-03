@@ -82,6 +82,9 @@ h.tstop = tstop
 h.steps_per_ms = 1/in_param["dt_neuron"]
 h.load_file('hoc_files/negative_init.hoc')
 
+print h.secondorder
+
+
 ##################
 # Run simulation #
 ##################

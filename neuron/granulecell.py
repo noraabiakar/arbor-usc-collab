@@ -121,10 +121,7 @@ def getBiophysics(cell, in_param):
 
     # Now, insert the proper biophysics for each section.
     for sec in cell.c.all:
-        # sec.insert('ccanl')
-        # sec.catau_ccanl=10*cell.k1
-        # sec.caiinf_ccanl=5.0e-6*cell.l1
-        sec.Ra = 410 * in_param["ra_mult"]
+        sec.Ra             = 410    * in_param["ra_mult"]
 
     for sec in cell.c.somatic:
         sec.insert('ichan2')
@@ -152,6 +149,10 @@ def getBiophysics(cell, in_param):
         sec.insert('cagk')
         sec.gkbar_cagk    = 0.0006 * in_param["gkbar_cagk"]
 
+        sec.insert('ccanl')
+        sec.catau_ccanl    = 10     * in_param["catau_ccanl"]
+        sec.caiinf_ccanl   = 5.0e-6 * in_param["caiinf_ccanl"]
+
         sec.cm               = 1.0 * in_param["cm_mult"]
 
     for sec in cell.c.dend:
@@ -161,6 +162,7 @@ def getBiophysics(cell, in_param):
         sec.insert('cat')
         sec.insert('gskch')
         sec.insert('cagk')
+        sec.insert('ccanl')
 
     for sec in cell.granuleCellLayer:
         if len(cell.granuleCellLayer[sec]) > 0:
@@ -175,6 +177,8 @@ def getBiophysics(cell, in_param):
             sec.gcatbar_cat    = 0.000075
             sec.gskbar_gskch   = 0.0004
             sec.gkbar_cagk     = 0.0006  * in_param["gkbar_cagk"]
+            sec.catau_ccanl    = 10     * in_param["catau_ccanl"]
+            sec.caiinf_ccanl   = 5.0e-6 * in_param["caiinf_ccanl"]
             sec.cm             = 1.0     * in_param["cm_mult"]
 
     for sec in cell.innerThird:
@@ -190,6 +194,8 @@ def getBiophysics(cell, in_param):
             sec.gcatbar_cat    = 0.00025
             sec.gskbar_gskch   = 0.0002
             sec.gkbar_cagk     = 0.001    * in_param["gkbar_cagk"]
+            sec.catau_ccanl    = 10     * in_param["catau_ccanl"]
+            sec.caiinf_ccanl   = 5.0e-6 * in_param["caiinf_ccanl"]
             sec.cm             = 1.6      * in_param["cm_mult"]
 
     for sec in cell.middleThird:
@@ -205,6 +211,8 @@ def getBiophysics(cell, in_param):
             sec.gcatbar_cat    = 0.0005
             sec.gskbar_gskch   = 0.0
             sec.gkbar_cagk     = 0.0024   * in_param["gkbar_cagk"]
+            sec.catau_ccanl    = 10     * in_param["catau_ccanl"]
+            sec.caiinf_ccanl   = 5.0e-6 * in_param["caiinf_ccanl"]
             sec.cm             = 1.6      * in_param["cm_mult"]
 
     for sec in cell.outerThird:
@@ -220,11 +228,14 @@ def getBiophysics(cell, in_param):
             sec.gcatbar_cat    = 0.001
             sec.gskbar_gskch   = 0.0
             sec.gkbar_cagk     = 0.0024   * in_param["gkbar_cagk"]
+            sec.catau_ccanl    = 10     * in_param["catau_ccanl"]
+            sec.caiinf_ccanl   = 5.0e-6 * in_param["caiinf_ccanl"]
             sec.cm             = 1.6      * in_param["cm_mult"]
 
     for sec in cell.c.all:
         sec.ek        = in_param["ek"]
         sec.cao       = in_param["cao"]
+        sec.enca      = 0
         sec.enat      = in_param["enat"]
         sec.ekf       = in_param["ekf"]
         sec.eks       = in_param["eks"]
