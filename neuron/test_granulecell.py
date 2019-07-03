@@ -79,7 +79,7 @@ h.celsius = in_param["temp"]
 h("tstep = 0")
 h("period = 2")
 h.tstop = tstop
-#h("steps_per_ms = 1000")
+h.steps_per_ms = 1/in_param["dt_neuron"]
 h.load_file('hoc_files/negative_init.hoc')
 
 ##################

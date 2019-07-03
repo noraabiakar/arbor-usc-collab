@@ -1,5 +1,5 @@
 {
-    "run_time": 200,
+    "run_time": 500,
     "dt_arbor": 0.01,
     "dt_neuron": 0.01,
     "temp": 35.0,
@@ -41,7 +41,7 @@
     "el_ichan2": -73,
     "cao":         2,
 
-    "syn_id": 1328,
+    "syn_id": 13,
     "syn_layer": "middleThird",
 
     "seg_res": 0.1,

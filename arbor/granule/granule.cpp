@@ -252,6 +252,9 @@ int main(int argc, char** argv) {
             }
         }
 
+        auto profile = arb::profile::profiler_summary();
+        std::cout << profile << "\n";
+
         // Write the samples to a json file.
         if (root) write_trace_json(voltage);
 

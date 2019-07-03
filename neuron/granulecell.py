@@ -264,7 +264,7 @@ def getReducedBiophysics(cell):
     cell.f1 = 0.5				#glcabar_lca
     cell.g1 = 2.0				#gcatbar_cat
     cell.h1 = 1.0				#gskbar_gskch
-    cell.i1 = 1/5.0			#gkbar_cagk
+    cell.i1 = 1/5.0			    #gkbar_cagk
     cell.j1 = 7.2538			#gl_ichan2
     cell.k1 = 1.0				#catau_ccanl
     cell.l1 = 1.0				#caiinf_ccanl

@@ -41,7 +41,7 @@ Running the examples will generate a plot
 ### Arbor:
 **Installing Arbor**:
 * Install Arbor from the following branch:
-https://github.com/noraabiakar/??
+https://github.com/noraabiakar/usc_collab/tree/testing/new-revpot
 * For help installing Arbor refer to:
 https://arbor.readthedocs.io/en/latest/install.html
 
