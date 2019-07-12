@@ -5,7 +5,7 @@ This repository contains the Neuron and Arbor implementations and simulations of
 
 ## Morphologies
 1) The basket cell is a single soma model
-2) The granule cell reads the morphology from **output0_updated.swc** in the morphologies directory
+2) The granule cell reads the morphology from `output0_updated.swc` in the morphologies directory
 
 ## Density Mechanisms
 The basket and granule cells both have the following mechanisms inserted on the soma and dendrites:
@@ -18,19 +18,28 @@ The basket and granule cells both have the following mechanisms inserted on the 
 7) lca.mod
 8) nca.mod
 
+There are 2 versions of the modfiles present in `neuron/modfiles` and `neuron/modfiles_arb`. 
+The files in `neuron/modfiles_arb` have been edited to not use the `TABLE` feature which 
+is supported in Neuron but not Arbor. Adding the `TABLE` feature is an optimization that 
+changes the simulation results significantly. For accurate voltage measurement comparison,
+we use `neuron/modfiles_arb` for the neuron simulation. 
+
+For benchmarking performance, the `TABLE` feature (`neuron/modfiles`) can be used for the 
+neuron simulations.  
+
 ## Parameters
-Various parameters can be set and will be read by Arbor and Neuron in param_basket.json and param_granule.json
+Various parameters can be set in `param_basket.json` and `param_granule.json`. 
 
 ## Stimulus
 A series of spikes is delivered to a synapse on the basket/granule cell.
-The spike times are read from param_basket.json and param_granule.json.
+The spike times are read from `param_basket.json` and `param_granule.json`.
 
 ## Running the examples
 
 ### Neuron:
 ```
 $ cd neuron
-$ nrnivmodl modfiles
+$ nrnivmodl modfiles_arb
 $ python2 test_granulecell.py ../param_granule.json
 OR
 $ python2 test_basketcell.py ../param_basket.json
@@ -58,9 +67,9 @@ $ make
 
 **Running the example**:
 ```
-$ ./granule ../../../param_granule.json
+$ ./arbor-granule ../../../param_granule.json
 OR
-$ ./basket ../../../param_basket.json
+$ ./arbor-basket ../../../param_basket.json
 ```
 
 **Plotting the results**:
