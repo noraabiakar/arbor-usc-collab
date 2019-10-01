@@ -265,9 +265,6 @@ cell_layers get_layer_info(std::string filename, double res) {
 
             ncomp.push_back(num_comp);
 
-            // Set compartments of branch remove
-            seg->as_cable()->set_compartments(num_comp);
-
             // Get all the points that define the branch (including first and last point)
             auto locs = seg->as_cable()->locations();
 
