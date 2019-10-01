@@ -27,7 +27,7 @@ fname_morph = in_param["morph_file"]
 modeltype = 'Multi'
 celltype = 'granulecell'
 
-neuron_DG = cell.Cell(ID,location,synvars,celltype,fname_morph,in_param, modeltype)
+neuron_DG = cell.Cell(ID, location, synvars, celltype, fname_morph, in_param, modeltype)
 
 ################################
 # Create spike times for input #
@@ -76,13 +76,13 @@ h.v_init = in_param["vinit"]
 h.t = 0
 h.dt = in_param["dt_neuron"]
 h.celsius = in_param["temp"]
-h("tstep = 0")
-h("period = 2")
+h("tstep = 0")  # h.tstep = 0
+h("period = 2") # h.period = 2
 h.tstop = tstop
 h.steps_per_ms = 1/in_param["dt_neuron"]
 h.load_file('hoc_files/negative_init.hoc')
 
-print h.secondorder
+# print h.secondorder
 
 
 ##################

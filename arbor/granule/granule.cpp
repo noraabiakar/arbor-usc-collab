@@ -60,7 +60,9 @@ public:
         catalogue_(arb::global_default_catalogue()) {
 
         cell_gprop_.catalogue = &catalogue_;
+
         cell_gprop_.default_parameters = arb::neuron_parameter_defaults;
+
         cell_gprop_.default_parameters.temperature_K = params_.temp + 273.15;
         cell_gprop_.default_parameters.init_membrane_potential = params_.v_init;
 
@@ -297,7 +299,7 @@ arb::cable_cell granule_cell(
         cell_layers layer_info,
         const granule_params& params) {
 
-    unsigned_layers synapse_ids;
+    layer_to_vec_unsigned synapse_ids;
 
     std::ifstream f(filename);
     if (!f) throw std::runtime_error("unable to open file");
@@ -314,19 +316,19 @@ arb::cable_cell granule_cell(
     auto morph = arb::swc_as_morphology(samples);
     arb::cable_cell cell = arb::make_cable_cell(morph);
 
-    int tot_seg = 1;
+    int tot_comp = 1;
     for (auto& segment: cell.segments()) {
         if (!segment->as_soma()) {
             auto length = segment->as_cable()->length();
             auto n = (unsigned) std::ceil(length / params.seg_res);
             segment->set_compartments(n);
-            tot_seg += n;
+            tot_comp += n;
         }
     }
 
-    std::cout << "total segments: " << tot_seg << std::endl;
+    std::cout << "total segments: " << tot_comp << std::endl;
 
-    int tot = 0;
+    int tot_synapses = 0;
     for (auto layer: layer_info.synapses.map) {
         int c = 0;
         for (auto v: layer.second) {
@@ -346,10 +348,10 @@ arb::cable_cell granule_cell(
                 cell.add_synapse({v.segment, v.pos}, exp2syn);
             }
             c++;
-            tot++;
+            tot_synapses++;
         }
     }
-    std::cout << "total synapses: " << tot << std::endl;
+    std::cout << "total synapses: " << tot_synapses << std::endl;
 
     cell.default_parameters.reversal_potential_method["nca"] = "ccanlrev";
     cell.default_parameters.reversal_potential_method["lca"] = "ccanlrev";
