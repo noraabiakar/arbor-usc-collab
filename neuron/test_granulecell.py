@@ -97,6 +97,16 @@ print("Finished in %f seconds" % ET)
 ########
 # Plot #
 ########
+ft= open("time.txt","w+")
+fv= open("vol.txt","w+")
+for i in t:
+    ft.write("%.4f\n" % i)
+for i in v:
+    fv.write("%.4f\n" % i)
+ft.close()
+fv.close()
+
+
 _=plt.plot(t,v)
 _=plt.xlabel('Time (ms)')
 _=plt.ylabel('Somatic Voltage (mV)')
