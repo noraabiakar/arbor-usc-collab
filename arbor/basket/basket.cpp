@@ -49,9 +49,7 @@ arb::cable_cell basket_cell(const basket_params& params);
 class basket_recipe: public arb::recipe {
 public:
     basket_recipe(const basket_params& params):
-    num_cells_(1),
     params_(params),
-    event_weight_(params_.weight),
     catalogue_(arb::global_default_catalogue()){
 
         cell_gprop_.catalogue = &catalogue_;
@@ -64,7 +62,7 @@ public:
     }
 
     cell_size_type num_cells() const override {
-        return num_cells_;
+        return 1;
     }
 
     arb::util::unique_any get_cell_description(cell_gid_type gid) const override {
@@ -86,16 +84,14 @@ public:
     }
 
     std::vector<arb::event_generator> event_generators(cell_gid_type gid) const override {
-        std::vector<arb::event_generator> gens;
         arb::pse_vector svec;
         for (auto s: params_.spikes) {
             if (s > params_.run_time) {
                 break;
             }
-            svec.push_back({{0, 0}, s, event_weight_});
+            svec.push_back({{0, 0}, s, (float)params_.weight});
         }
-        gens.push_back(arb::explicit_generator(svec));
-        return gens;
+        return {arb::explicit_generator(svec)};
     }
 
 
@@ -105,12 +101,9 @@ public:
     }
 
     arb::probe_info get_probe(cell_member_type id) const override {
-        // Get the appropriate kind for measuring voltage.
-        cell_probe_address::probe_kind kind = cell_probe_address::membrane_voltage;
-        // Measure at the soma.
-        arb::segment_location loc(0, 0.5);
-
-        return arb::probe_info{id, kind, cell_probe_address{loc, kind}};
+        arb::mlocation mid_soma = {0, 0.5};
+        arb::cell_probe_address probe = {mid_soma, arb::cell_probe_address::membrane_voltage};
+        return {id, 0, probe};
     }
 
     arb::util::any get_global_properties(cell_kind k) const override {
@@ -122,9 +115,7 @@ public:
     }
 
 private:
-    cell_size_type num_cells_;
     basket_params params_;
-    float event_weight_;
 
     arb::cable_cell_global_properties cell_gprop_;
     arb::mechanism_catalogue catalogue_;
@@ -268,47 +259,46 @@ void write_trace_json(const arb::trace_data<double>& trace) {
 }
 
 arb::cable_cell basket_cell(const basket_params& params) {
-    arb::cable_cell cell;
+    using mech = arb::mechanism_desc;
+
+    arb::sample_tree tree;
+    arb::label_dict dict;
 
     // Add soma.
-    auto soma = cell.add_soma(17.32051/2.0); // For area of 500 μm².
-    soma->parameters.membrane_capacitance = params.ra;
-    soma->parameters.membrane_capacitance = params.cm/100;
+    tree.append(arb::mnpos, {{0,0,0 ,15.0/2.0}, 1});
+    tree.append(0,          {{0,0,20,15.0/2.0}, 1});
+    dict.set("soma", arb::reg::tagged(1));
 
-    arb::mechanism_desc ichan2("ichan2");
-    arb::mechanism_desc borgka("borgka");
-    arb::mechanism_desc nca("nca");
-    arb::mechanism_desc lca("lca");
-    arb::mechanism_desc cat("cat");
-    arb::mechanism_desc gskch("gskch");
-    arb::mechanism_desc cagk("cagk");
+    arb::cable_cell cell(arb::morphology(tree, false), dict);
 
-    ichan2["gnatbar"] = params.gnatbar_ichan2;
-    ichan2["gkfbar"]  = params.gkfbar_ichan2;
-    ichan2["gl"]      = params.gl_ichan2;
-    ichan2["el"]      = params.el_ichan2;
-    borgka["gkabar"]  = params.gkabar_borgka;
-    nca["gncabar"]    = params.gncabar_nca;
-    lca["glcabar"]    = params.glcabar_lca;
-    gskch["gskbar"]   = params.gskbar_gskch;
-    cagk["gkbar"]     = params.gkbar_cagk;
+    // Add denisty mechanisms to soma and set rl and cm
+    cell.paint("soma", mech("ichan2").set
+              ("gnatbar", params.gnatbar_ichan2).set
+              ("gkfbar",  params.gkfbar_ichan2).set
+              ("gl",      params.gl_ichan2).set
+              ("el",      params.el_ichan2));
+    cell.paint("soma", mech("ccanl").set
+              ("catau",  params.catau_ccanl).set
+              ("caiinf", params.caiinf_ccanl));
+    cell.paint("soma", mech("borgka").set("gkabar", params.gkabar_borgka));
+    cell.paint("soma", mech("nca").set("gncabar",   params.gncabar_nca));
+    cell.paint("soma", mech("lca").set("glcabar",   params.glcabar_lca));
+    cell.paint("soma", mech("gskch").set("gskbar",  params.gskbar_gskch));
+    cell.paint("soma", mech("cagk").set("gkbar",    params.gkbar_cagk));
+    cell.paint("soma", arb::membrane_capacitance{params.cm/100.});
+    cell.paint("soma", arb::axial_resistivity{params.ra});
 
-    soma->add_mechanism(ichan2);
-    soma->add_mechanism(borgka);
-    soma->add_mechanism(nca);
-    soma->add_mechanism(lca);
-    soma->add_mechanism(cat);
-    soma->add_mechanism(gskch);
-    soma->add_mechanism(cagk);
+    // Set ion reversal potential method
+    cell.default_parameters.reversal_potential_method["nca"] = "ccanlrev";
+    cell.default_parameters.reversal_potential_method["lca"] = "ccanlrev";
+    cell.default_parameters.reversal_potential_method["tca"] = "ccanlrev";
 
-    cell.add_detector({0, 0}, 10);
-
-    arb::mechanism_desc exp2syn("exp2syn");
-    exp2syn["tau1"] = params.tau1_syn;
-    exp2syn["tau2"] = params.tau2_syn;
-    exp2syn["e"] = params.e_syn;
-
-    cell.add_synapse({0, 0.5}, exp2syn);
+    // Add a spike detector and soma
+    cell.place(arb::mlocation{0,0}, arb::threshold_detector{10});
+    cell.place(arb::mlocation{0,0.5}, mech("exp2syn").set
+                                          ("tau1", params.tau1_syn).set
+                                          ("tau2", params.tau2_syn).set
+                                          ("e", params.e_syn));
 
     return cell;
 }
