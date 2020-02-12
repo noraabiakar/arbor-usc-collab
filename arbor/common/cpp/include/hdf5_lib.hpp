@@ -3,6 +3,9 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
+#include <memory>
+#include <unordered_map>
 
 #include <hdf5.h>
 
