@@ -72,11 +72,22 @@ public:
     template <typename T>
     void add_dataset(std::string name, std::vector<T> dset);
 
-    // hdf5 groups belonging to group
-    std::vector<std::shared_ptr<h5_group>> groups_;
+    const std::vector<std::shared_ptr<h5_group>>& groups() {
+        return groups_;
+    }
 
-    // hdf5 datasets belonging to group
-    std::vector<std::shared_ptr<h5_dataset>> datasets_;
+    const std::vector<std::shared_ptr<h5_dataset>>& datasets() {
+        return datasets_;
+    }
+
+    void print_groups() {
+        for (auto g: groups()) {
+            std::cout << g->name() << std::endl;
+            std::cout << "->" << std::endl;
+            g->print_groups();
+            std::cout << "<-" << std::endl;
+        }
+    }
 
 private:
     // RAII to handle recursive opening/closing groups
@@ -103,6 +114,12 @@ private:
 
     // Handles group opening/closing
     group_handle group_h_;
+
+    // hdf5 groups belonging to group
+    std::vector<std::shared_ptr<h5_group>> groups_;
+
+    // hdf5 datasets belonging to group
+    std::vector<std::shared_ptr<h5_dataset>> datasets_;
 };
 
 
@@ -132,6 +149,9 @@ private:
     // Handles file opening/closing
     file_handle file_h_;
 
+    // Pointer to top level group in file
+    std::shared_ptr<h5_group> top_group_;
+
 public:
     // Constructor from file name
     h5_file(std::string name, bool new_file=false);
@@ -139,11 +159,9 @@ public:
     // Returns file name
     std::string name();
 
-    // Debugging function
-    void print();
-
-    // Pointer to top level group in file
-    std::shared_ptr<h5_group> top_group_;
+    const auto& top_group() {
+        return top_group_;
+    }
 };
 
 /// Class that wraps an h5_group
@@ -154,6 +172,7 @@ public:
     h5_wrapper();
 
     h5_wrapper(const std::shared_ptr<h5_group>& g);
+    h5_wrapper(h5_file file): h5_wrapper(file.top_group()) {};
 
     // Returns number of sub-groups in the wrapped h5_group
     int size();

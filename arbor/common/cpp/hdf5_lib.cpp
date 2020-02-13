@@ -353,6 +353,27 @@ auto h5_dataset::get<std::vector<std::pair<int, int>>>() {
     return out;
 }
 
+template <>
+auto h5_dataset::get<std::vector<std::pair<double, double>>>() {
+    double out_a[size_][2];
+    auto id = H5Dopen(parent_id_, name_.c_str(), H5P_DEFAULT);
+
+    auto status = H5Dread(id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, out_a);
+
+    H5Dclose(id);
+
+    if (status < 0) {
+        throw std::runtime_error("error reading dataset " + name());
+    }
+
+    std::vector<std::pair<double, double>> out(size_);
+    for (unsigned i = 0; i < size_; i++) {
+        out[i] = std::make_pair(out_a[i][0], out_a[i][1]);
+    }
+
+    return out;
+}
+
 ///h5_group methods
 
 h5_group::h5_group(hid_t parent, std::string name): parent_id_(parent), name_(name), group_h_(parent_id_, name_) {
@@ -402,40 +423,6 @@ std::string h5_file::name() {
     return name_;
 }
 
-void h5_file::print() {
-    std::cout << top_group_->name() << std::endl;
-    for (auto g0: top_group_->groups_) {
-        std::cout << "\t" << g0->name() << std::endl;
-        for (auto g1: g0->groups_) {
-            std::cout << "\t\t" << g1->name() << std::endl;
-            for (auto g2: g1->groups_) {
-                std::cout << "\t\t\t" << g2->name() << std::endl;
-                for (auto g3: g2->groups_) {
-                    std::cout << "\t\t\t\t" << g3->name() << std::endl;
-                    for (auto g4: g3->groups_) {
-                        std::cout << "\t\t\t\t\t" << g4->name() << std::endl;
-                    }
-                    for (auto d4: g3->datasets_) {
-                        std::cout << "\t\t\t\t\t" << d4->name() << " " << d4->size() << std::endl;
-                    }
-                }
-                for (auto d3: g2->datasets_) {
-                    std::cout << "\t\t\t\t" << d3->name() << " " << d3->size() << std::endl;
-                }
-            }
-            for (auto d2: g1->datasets_) {
-                std::cout << "\t\t\t" << d2->name() << " " << d2->size() << std::endl;
-            }
-        }
-        for (auto d1: g0->datasets_) {
-            std::cout << "\t\t" << d1->name() << " " << d1->size() << std::endl;
-        }
-    }
-    for (auto d0: top_group_->datasets_) {
-        std::cout << "\t" << d0->name() << " " << d0->size() << std::endl;
-    }
-}
-
 
 ///h5_wrapper methods
 
@@ -443,11 +430,11 @@ h5_wrapper::h5_wrapper() {}
 
 h5_wrapper::h5_wrapper(const std::shared_ptr<h5_group>& g): ptr_(g) {
     unsigned i = 0;
-    for (auto d: ptr_->datasets_) {
+    for (auto d: ptr_->datasets()) {
         dset_map_[d->name()] = i++;
     }
     i = 0;
-    for (auto g: ptr_->groups_) {
+    for (auto g: ptr_->groups()) {
         member_map_[g->name()] = i++;
         members_.emplace_back(g);
     }
@@ -473,7 +460,7 @@ int h5_wrapper::find_dataset(std::string name) const {
 
 int h5_wrapper::dataset_size(std::string name) const {
     if (dset_map_.find(name) != dset_map_.end()) {
-        return ptr_->datasets_.at(dset_map_.at(name))->size();
+        return ptr_->datasets().at(dset_map_.at(name))->size();
     }
     return -1;
 }
@@ -481,7 +468,7 @@ int h5_wrapper::dataset_size(std::string name) const {
 template <typename T>
 T h5_wrapper::get(std::string name, unsigned i) const {
     if (find_dataset(name) != -1) {
-        return ptr_->datasets_.at(dset_map_.at(name))->get<T>(i);
+        return ptr_->datasets().at(dset_map_.at(name))->get<T>(i);
     }
     throw std::runtime_error("error reading dataset " + name);
 }
@@ -489,7 +476,7 @@ T h5_wrapper::get(std::string name, unsigned i) const {
 template <typename T>
 T h5_wrapper::get(std::string name, unsigned i, unsigned j) const {
     if (find_dataset(name)!= -1) {
-        return ptr_->datasets_.at(dset_map_.at(name))->get<T>(i, j);
+        return ptr_->datasets().at(dset_map_.at(name))->get<T>(i, j);
     }
     throw std::runtime_error("error reading dataset " + name);
 }
@@ -497,7 +484,7 @@ T h5_wrapper::get(std::string name, unsigned i, unsigned j) const {
 template <typename T>
 T h5_wrapper::get(std::string name) const {
     if (find_dataset(name)!= -1) {
-        return ptr_->datasets_.at(dset_map_.at(name))->get<T>();
+        return ptr_->datasets().at(dset_map_.at(name))->get<T>();
     }
     throw std::runtime_error("error reading dataset " + name);
 }
@@ -506,7 +493,7 @@ const h5_wrapper& h5_wrapper::operator [](unsigned i) const {
     if (i < members_.size() && i >= 0) {
         return members_.at(i);
     }
-    throw std::runtime_error("h5_wrapper index out of range");
+    throw std::runtime_error("h5_wrapper index out of range " + name());
 }
 
 const h5_wrapper& h5_wrapper::operator [](std::string name) const {
@@ -514,7 +501,7 @@ const h5_wrapper& h5_wrapper::operator [](std::string name) const {
     if (gid != -1) {
         return members_.at(gid);
     }
-    throw std::runtime_error("h5_wrapper index out of range");
+    throw std::runtime_error("h5_wrapper index out of range " + name);
 }
 
 std::string h5_wrapper::name() const {
@@ -536,3 +523,4 @@ template std::vector<double> h5_wrapper::get<std::vector<double>>(std::string na
 
 template std::vector<int> h5_wrapper::get<std::vector<int>>(std::string) const;
 template std::vector<std::pair<int,int>> h5_wrapper::get<std::vector<std::pair<int,int>>>(std::string) const;
+template std::vector<std::pair<double,double>> h5_wrapper::get<std::vector<std::pair<double,double>>>(std::string) const;
