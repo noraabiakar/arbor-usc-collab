@@ -1,5 +1,5 @@
 {
-    "run_time": 30,
+    "run_time": 20,
     "dt_arbor": 0.025,
     "temp": 35.0,
     "vinit": -70.0,

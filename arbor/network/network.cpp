@@ -18,6 +18,7 @@
 #include <arbor/swcio.hpp>
 #include <arbor/simulation.hpp>
 #include <arbor/simple_sampler.hpp>
+#include <arbor/version.hpp>
 
 #include <arborenv/concurrency.hpp>
 #include <arborenv/gpu_env.hpp>
