@@ -63,13 +63,14 @@ public:
     }
 
     arb::util::unique_any get_cell_description(cell_gid_type gid) const override {
-        std::mt19937_64 G;
         if (gid >=0 && gid < 66000) {
             //MEC cell
-            return arb::spike_source_cell{arb::poisson_schedule(3, G)};
+            std::mt19937_64 G(gid);
+            return arb::spike_source_cell{arb::poisson_schedule(20.0/1000.0, G)};
         } else if (gid >=66000 && gid < 112000) {
             //LEC cell
-            return arb::spike_source_cell{arb::poisson_schedule(3, G)};
+            std::mt19937_64 G(gid);
+            return arb::spike_source_cell{arb::poisson_schedule(20.0/1000.0, G)};
         } else if (gid >=112000 && gid < 113200) {
             //GC
             return granule_cell(tree_, gid);
@@ -138,7 +139,7 @@ public:
                     auto src_loc = cell_locs_[src];
                     auto dist = distance(dest_loc, src_loc);
                     conns.emplace_back(
-                            arb::cell_connection({(cell_gid_type) src, 0}, {gid, 1}, 1.52e-5, (2.4 + dist) / 0.32));
+                            arb::cell_connection({(cell_gid_type) src, 0}, {gid, 1}, 1.52e-4, (2.4 + dist) / 0.32));
                 }
             }
             //GC <- LEC
@@ -148,7 +149,7 @@ public:
                     auto src_loc = cell_locs_[src];
                     auto dist = distance(dest_loc, src_loc);
                     conns.emplace_back(
-                            arb::cell_connection({(cell_gid_type) src, 0}, {gid, 2}, 1.63e-5, (2.4 + dist) / 0.32));
+                            arb::cell_connection({(cell_gid_type) src, 0}, {gid, 2}, 1.63e-3, (2.4 + dist) / 0.32));
                 }
             }
             // GC <- BC
@@ -248,6 +249,8 @@ int main(int argc, char** argv) {
 
         // Create an instance of our recipe.
         net_recipe recipe(params);
+
+        // Add foreign ions and their initial parameters0
         recipe.add_ion("nca", 2, 1.0, 1.0, 0);
         recipe.add_ion("lca", 2, 1.0, 1.0, 130);
         recipe.add_ion("tca", 2, 1.0, 1.0, 130);
@@ -256,16 +259,131 @@ int main(int argc, char** argv) {
         recipe.add_ion("ks",  1, 1.0, 1.0, -90);
         recipe.add_ion("sk",  1, 1.0, 1.0, -90);
 
-        auto decomp = arb::partition_load_balance(recipe, context);
+        // Custom partitioning function to load-balance the distribution of cells on MPI ranks
+        auto partition_network = [&recipe, &context]() {
+            arb::domain_decomposition decomp;
+            struct opt_ {
+                opt_(unsigned nd, unsigned id, bool has_gpu): num_domains(nd), domain_id(id) {
+                    backend = has_gpu ? arb::backend_kind::gpu : arb::backend_kind::multicore;
+                }
+                unsigned num_domains;
+                unsigned domain_id;
+                arb::backend_kind backend;
+
+                unsigned mec_start = 0;
+                unsigned lec_start = 66000;
+                unsigned gc_start = 112000;
+                unsigned bc_start = 113200;
+
+                unsigned num_mec = 66000;
+                unsigned num_lec = 46000;
+                unsigned num_gc = 1200;
+                unsigned num_bc = 8077;
+
+                unsigned gc_per_domain = num_gc/num_domains;
+                unsigned gc_rem            = num_gc%num_domains;
+
+                unsigned bc_per_domain = num_bc/num_domains;
+                unsigned bc_rem            = num_bc%num_domains;
+
+                unsigned lec_per_domain = num_lec/num_domains;
+                unsigned lec_rem            = num_lec%num_domains;
+
+                unsigned mec_per_domain = num_mec/num_domains;
+                unsigned mec_rem            = num_mec%num_domains;
+
+                unsigned base_count = gc_per_domain + bc_per_domain + lec_per_domain + mec_per_domain;
+                unsigned extra_count = gc_rem + bc_rem + lec_rem + mec_rem;
+
+                unsigned num_local_cells = domain_id == 0 ? base_count + extra_count: base_count;
+            } opt(num_ranks(context), rank(context), has_gpu(context));
+
+            std::vector<arb::group_description> groups;
+            for (unsigned i = opt.mec_start + opt.mec_per_domain*opt.domain_id;
+                          i < opt.mec_start + opt.mec_per_domain*(opt.domain_id+1); ++i) {
+                groups.push_back({cell_kind::spike_source, {(cell_gid_type)i}, opt.backend});
+            }
+            if (opt.domain_id == 0) {
+                for (unsigned i = opt.mec_start + opt.mec_per_domain * opt.num_domains; 
+                              i < opt.mec_start + opt.num_mec; ++i) {
+                    groups.push_back({cell_kind::spike_source, {(cell_gid_type)i}, opt.backend});
+                }
+            }
+
+            for (unsigned i = opt.lec_start + opt.lec_per_domain * opt.domain_id;
+                          i < opt.lec_start + opt.lec_per_domain * (opt.domain_id + 1); ++i) {
+                groups.push_back({cell_kind::spike_source, {(cell_gid_type)i}, opt.backend});
+            }
+            if (opt.domain_id == 0) {
+                for (unsigned i = opt.lec_start + opt.lec_per_domain * opt.num_domains; 
+                              i < opt.lec_start + opt.num_lec; ++i) {
+                    groups.push_back({cell_kind::spike_source, {(cell_gid_type)i}, opt.backend});
+                }
+            }
+
+            for (unsigned i = opt.gc_start + opt.gc_per_domain * opt.domain_id;
+                          i < opt.gc_start + opt.gc_per_domain * (opt.domain_id + 1); ++i) {
+                groups.push_back({cell_kind::cable, {(cell_gid_type)i}, opt.backend});
+            }
+            if (opt.domain_id == 0) {
+                for (unsigned i = opt.gc_start + opt.gc_per_domain * opt.num_domains; 
+                              i < opt.gc_start + opt.num_gc; ++i) {
+                    groups.push_back({cell_kind::cable, {(cell_gid_type)i}, opt.backend});
+                }
+            }
+
+            for (unsigned i = opt.bc_start + opt.bc_per_domain * opt.domain_id;
+                          i < opt.bc_start + opt.bc_per_domain * (opt.domain_id + 1); ++i) {
+                groups.push_back({cell_kind::cable, {(cell_gid_type)i}, opt.backend});
+            }
+            if (opt.domain_id == 0) {
+                for (unsigned i = opt.bc_start + opt.bc_per_domain * opt.num_domains; 
+                              i < opt.bc_start + opt.num_bc; ++i) {
+                    groups.push_back({cell_kind::cable, {(cell_gid_type)i}, opt.backend});
+                }
+            }
+
+            struct partition_gid_domain {
+                partition_gid_domain(const opt_& opt): opt(opt) {}
+
+                int operator()(cell_gid_type gid) const {
+                    int dom = 0;
+                    if (gid >= opt.mec_start && gid < opt.lec_start) {
+                        dom = ((gid - opt.mec_start)/opt.mec_per_domain);
+                    } else if (gid >= opt.lec_start && gid < opt.gc_start) {
+                        dom = ((gid - opt.lec_start)/opt.lec_per_domain);
+                    } else if (gid >= opt.gc_start && gid < opt.bc_start) {
+                        dom = ((gid - opt.gc_start)/opt.gc_per_domain);
+                    } else if (gid >= opt.bc_start && gid){
+                        dom = ((gid - opt.bc_start)/opt.bc_per_domain);
+                    }
+                    return dom >= opt.num_domains ? 0 : dom;
+                }
+
+                opt_ opt;
+            };
+
+            decomp.num_domains = opt.num_domains;
+            decomp.domain_id = opt.domain_id;
+            decomp.num_local_cells = opt.num_local_cells;
+            decomp.num_global_cells = 121277;
+            decomp.groups = std::move(groups);
+            decomp.gid_domain = partition_gid_domain(opt);
+
+            return decomp;
+        };
+
+        auto decomp = partition_network();
 
         // Construct the model.
         arb::simulation sim(recipe, decomp, context);
 
+        if (root) std::cout << params.run_time << std::endl;
+
         // Set up the probe that will measure voltage in the cell.
 
         // The id of the only probe on the cell: the cell_member type points to (cell 0, probe 0)
-        auto probe_id = cell_member_type{112111, 0};
-
+        auto probe_id = cell_member_type{params.probe_gid, 0};
         auto sched = arb::regular_schedule(params.dt);
 
         // This is where the voltage samples will be stored as (time, value) pairs
@@ -316,7 +434,10 @@ int main(int argc, char** argv) {
         std::cout << profile << "\n";
 
         // Write the samples to a json file.
-        if (root) write_trace_json(voltage);
+        if (decomp.gid_domain(params.probe_gid) == arb::rank(context)) {
+           std::cout << "rank " << arb::rank(context) << " is writing the voltages" << std::endl;
+           write_trace_json(voltage);
+        }
 
         auto report = arb::profile::make_meter_report(meters, context);
         std::cout << report;
